@@ -1,94 +1,64 @@
-'use client';
-
-import { useState } from 'react';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+"use client";
+import { useState } from "react";
 
 export default function SignupPage() {
-  const router = useRouter();
-  const supabase = createSupabaseBrowserClient();
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [error, setError] = useState("");
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setErrorMsg('');
+    setError("");
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { username }, // saves username to user_metadata
-      },
+    const res = await fetch("/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, username }),
     });
 
-    if (error) {
-      setErrorMsg(error.message);
-      setLoading(false);
-      return;
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error || "Signup failed");
     }
-
-    // Optionally redirect after signup
-    router.push('/login');
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white">
-      <h1 className="text-3xl font-bold mb-6">Sign Up</h1>
-
-      <form
-        onSubmit={handleSignup}
-        className="flex flex-col gap-4 w-80 bg-gray-900 p-6 rounded shadow-md"
-      >
+      <h1 className="text-3xl font-bold mb-6">Signup Page</h1>
+      <form onSubmit={handleSignup} className="flex flex-col gap-4">
         <input
           type="text"
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 rounded text-black"
           required
         />
-
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 rounded text-black"
           required
         />
-
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 rounded text-black"
           required
         />
-
+        {error && <p className="text-red-500">{error}</p>}
         <button
           type="submit"
-          disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded font-semibold text-white transition disabled:opacity-50"
+          className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded text-white"
         >
-          {loading ? 'Signing Up...' : 'Sign Up'}
+          Sign Up
         </button>
-
-        {errorMsg && <p className="text-red-500 text-sm">{errorMsg}</p>}
       </form>
-
-      <p className="mt-4 text-gray-400 text-sm">
-        Already have an account?{' '}
-        <a href="/login" className="text-blue-500 hover:underline">
-          Log in
-        </a>
-      </p>
     </div>
   );
 }

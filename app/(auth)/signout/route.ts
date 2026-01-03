@@ -1,16 +1,12 @@
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function POST() {
-  const supabase = await createServerSupabaseClient(); // ✅ add await
+  const supabase = await createSupabaseServerClient();
 
-  const { error } = await supabase.auth.signOut();
+  await supabase.auth.signOut();
 
-  if (error) {
-    console.error("Error during signout:", error);
-  }
-
-  return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/login`, {
-    status: 302,
-  });
+  return NextResponse.redirect(
+    new URL("/", process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000")
+  );
 }

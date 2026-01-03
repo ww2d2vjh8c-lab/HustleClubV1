@@ -1,25 +1,50 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/supabase/auth";
 
 export default async function AdminPage() {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase } = await requireAdmin();
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-white bg-black">
-        <p>You must be logged in to view this page.</p>
-      </div>
-    );
-  }
+  const { data: users, error } = await supabase
+    .from("profiles")
+    .select("id, email, role, created_at")
+    .order("created_at", { ascending: false })
+    .limit(20);
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center">
-      <h1 className="text-4xl font-bold mb-4">Admin Dashboard</h1>
-      <p className="text-gray-400">
-        Welcome back, <span className="text-blue-400">{user.email}</span> 👋
-      </p>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
+
+      {error && (
+        <p className="text-red-500 mb-4">
+          Error: {error.message}
+        </p>
+      )}
+
+      {users && (
+        <div className="overflow-auto">
+          <table className="min-w-full border border-gray-200 text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border px-3 py-2 text-left">ID</th>
+                <th className="border px-3 py-2 text-left">Email</th>
+                <th className="border px-3 py-2 text-left">Role</th>
+                <th className="border px-3 py-2 text-left">Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id}>
+                  <td className="border px-3 py-2">{user.id}</td>
+                  <td className="border px-3 py-2">{user.email}</td>
+                  <td className="border px-3 py-2">{user.role}</td>
+                  <td className="border px-3 py-2">
+                    {new Date(user.created_at).toLocaleDateString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

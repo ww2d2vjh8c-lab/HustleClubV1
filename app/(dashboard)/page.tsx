@@ -1,58 +1,53 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createSupabaseClient } from "@/lib/supabase/client";
+
+type User = {
+  id: string;
+  email?: string;
+};
 
 export default function DashboardPage() {
+  const supabase = createSupabaseClient();
   const router = useRouter();
-  const supabase = createSupabaseBrowserClient();
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
+
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getUserAndProfile = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (error || !data.user) {
-        router.push('/login');
+    async function loadUser() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.replace("/login");
         return;
       }
 
-      setUser(data.user);
+      setUser(user);
+      setLoading(false);
+    }
 
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
-
-      setProfile(profileData);
-    };
-
-    getUserAndProfile();
+    loadUser();
   }, [router, supabase]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
-
-  if (!user) return null;
+  if (loading) {
+    return (
+      <div className="p-6">
+        <p>Loading dashboard…</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white">
-      <h1 className="text-4xl font-bold mb-4">
-        Welcome, {profile?.username || user.email} 👋
-      </h1>
-      <p className="text-gray-400 mb-8">
-        {profile ? 'Your profile is connected!' : 'Fetching profile...'}
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-2">Dashboard</h1>
+      <p className="text-gray-600">
+        Welcome{user?.email ? `, ${user.email}` : ""} 👋
       </p>
-      <button
-        onClick={handleLogout}
-        className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
-      >
-        Log Out
-      </button>
     </div>
   );
 }
