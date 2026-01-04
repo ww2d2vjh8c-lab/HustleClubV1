@@ -1,54 +1,28 @@
+import AvatarUploader from "@/components/profile/AvatarUploader";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default async function EditProfilePage() {
+export default async function ProfilePage() {
   const supabase = await createSupabaseServerClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("username, full_name, bio")
-    .eq("id", user.id)
-    .single();
+  if (!user) {
+    redirect("/login");
+  }
 
   return (
-    <div className="max-w-xl p-6">
-      <h1 className="text-2xl font-bold mb-4">Edit Profile</h1>
+    <div className="max-w-xl mx-auto p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Your Profile</h1>
 
-      <form action="/actions/profile/update" method="post" className="space-y-4">
-        <input
-          name="username"
-          defaultValue={profile?.username}
-          placeholder="Username"
-          required
-          className="w-full border p-2 rounded"
-        />
-
-        <input
-          name="full_name"
-          defaultValue={profile?.full_name}
-          placeholder="Full name"
-          className="w-full border p-2 rounded"
-        />
-
-        <textarea
-          name="bio"
-          defaultValue={profile?.bio}
-          placeholder="Bio"
-          className="w-full border p-2 rounded"
-        />
-
-        <button className="bg-black text-white px-4 py-2 rounded">
-          Save
-        </button>
-      </form>
+      <div>
+        <h2 className="font-semibold mb-2">Avatar</h2>
+        <AvatarUploader userId={user.id} />
+      </div>
     </div>
   );
 }
