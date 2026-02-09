@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
+import LoadingButton from "@/components/ui/LoadingButton";
 
 type AvatarUploaderProps = {
   userId: string;
@@ -55,7 +56,10 @@ export default function AvatarUploader({ userId }: AvatarUploaderProps) {
         }}
       />
 
-      {uploading && <p className="text-sm text-gray-500">Uploading...</p>}
+      <LoadingButton isLoading={uploading}>
+        Upload Avatar
+      </LoadingButton>
+
       {error && <p className="text-sm text-red-500">{error}</p>}
     </div>
   );

@@ -1,49 +1,57 @@
-import { requireAdmin } from "@/lib/supabase/auth";
+import { requireCreator } from "@/lib/auth/requireCreator";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminJobsPage() {
-  const { supabase } = await requireAdmin();
+type JobRow = {
+  id: number;
+  title: string;
+  created_at: string;
+  applications: { count: number }[];
+};
+
+export default async function EmployerJobsPage() {
+  const user = await requireCreator("/admin/jobs");
+  const supabase = await createSupabaseServerClient();
 
   const { data: jobs, error } = await supabase
     .from("jobs")
-    .select("id, title, created_at")
-    .order("created_at", { ascending: false });
+    .select(`
+      id,
+      title,
+      created_at,
+      applications:job_applications(count)
+    `)
+    .eq("created_by", user.id)
+    .order("created_at", { ascending: false })
+    .returns<JobRow[]>();
 
   if (error) {
-    return (
-      <div className="p-6">
-        <p className="text-red-500">Failed to load jobs</p>
-      </div>
-    );
+    return <div className="p-6 text-red-500">Failed to load jobs.</div>;
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Admin · Jobs</h1>
+    <main className="max-w-4xl mx-auto p-6 space-y-6">
+      <header className="flex justify-between">
+        <h1 className="text-2xl font-bold">Your Jobs</h1>
+        <Link href="/admin/jobs/new" className="btn-primary">
+          Post Job
+        </Link>
+      </header>
 
-      {jobs && jobs.length === 0 && (
-        <p className="text-gray-600">No jobs found.</p>
-      )}
+      {jobs?.map((job) => {
+        const count = job.applications?.[0]?.count ?? 0;
 
-      <table className="min-w-full border border-gray-200 text-sm">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border px-3 py-2 text-left">Title</th>
-            <th className="border px-3 py-2 text-left">Created</th>
-          </tr>
-        </thead>
-        <tbody>
-          {jobs?.map((job) => (
-            <tr key={job.id}>
-              <td className="border px-3 py-2">{job.title}</td>
-              <td className="border px-3 py-2">
-                {new Date(job.created_at).toLocaleDateString()}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        return (
+          <div key={job.id} className="border p-4 rounded">
+            <p className="font-medium">{job.title}</p>
+            <p className="text-xs text-gray-500">
+              {count} applicant{count !== 1 && "s"}
+            </p>
+          </div>
+        );
+      })}
+    </main>
   );
 }

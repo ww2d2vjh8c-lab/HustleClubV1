@@ -1,64 +1,68 @@
 "use client";
+
 import { useState } from "react";
+import { createSupabaseClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
+  const supabase = createSupabaseClient();
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  async function handleSignup() {
+    setLoading(true);
+    setError(null);
 
-    const res = await fetch("/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, username }),
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
     });
 
-    if (!res.ok) {
-      const data = await res.json();
-      setError(data.error || "Signup failed");
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
     }
-  };
+
+    // ALWAYS go to profile
+    router.push("/profile");
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white">
-      <h1 className="text-3xl font-bold mb-6">Signup Page</h1>
-      <form onSubmit={handleSignup} className="flex flex-col gap-4">
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="px-4 py-2 rounded text-black"
-          required
-        />
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-full max-w-md bg-white border rounded-xl shadow-sm p-6 space-y-6">
+        <h1 className="text-2xl font-bold text-center">Create account</h1>
+
         <input
           type="email"
           placeholder="Email"
+          className="w-full border rounded px-3 py-2"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="px-4 py-2 rounded text-black"
-          required
         />
+
         <input
           type="password"
           placeholder="Password"
+          className="w-full border rounded px-3 py-2"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="px-4 py-2 rounded text-black"
-          required
         />
-        {error && <p className="text-red-500">{error}</p>}
+
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+
         <button
-          type="submit"
-          className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded text-white"
+          onClick={handleSignup}
+          disabled={loading}
+          className="w-full bg-black text-white py-2 rounded"
         >
-          Sign Up
+          {loading ? "Creating..." : "Sign up"}
         </button>
-      </form>
+      </div>
     </div>
   );
 }
