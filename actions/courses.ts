@@ -1,7 +1,9 @@
 // actions/courses.ts
 "use server";
 
-import { requireCreator } from "../lib/supabase/auth";
+import { requireCreator } from "@/lib/supabase/auth";
+
+/* ───────────────── CREATE COURSE ───────────────── */
 
 export async function createCourse(input: {
   title: string;
@@ -16,8 +18,13 @@ export async function createCourse(input: {
     creator_id: user.id,
   });
 
-  if (error) throw error;
+  if (error) {
+    console.error("createCourse error:", error);
+    throw new Error("Failed to create course");
+  }
 }
+
+/* ───────────────── PUBLISH COURSE ───────────────── */
 
 export async function publishCourse(courseId: string) {
   const { supabase, user } = await requireCreator();
@@ -28,5 +35,8 @@ export async function publishCourse(courseId: string) {
     .eq("id", courseId)
     .eq("creator_id", user.id);
 
-  if (error) throw error;
+  if (error) {
+    console.error("publishCourse error:", error);
+    throw new Error("Failed to publish course");
+  }
 }
