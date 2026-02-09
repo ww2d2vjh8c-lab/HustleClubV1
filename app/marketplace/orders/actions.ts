@@ -1,11 +1,9 @@
 "use server";
 
 import { requireUser } from "@/lib/auth/requireUser";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function confirmDelivery(orderId: string) {
-  const user = await requireUser("/marketplace/orders");
-  const supabase = await createSupabaseServerClient();
+  const { user, supabase } = await requireUser();
 
   const { data: order } = await supabase
     .from("marketplace_orders")

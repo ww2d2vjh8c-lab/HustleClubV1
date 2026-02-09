@@ -1,12 +1,10 @@
 import { requireUser } from "@/lib/auth/requireUser";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import CreatorApplyForm from "@/components/creator/CreatorApplyForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function CreatorApplyPage() {
-  const user = await requireUser("/creator/apply");
-  const supabase = await createSupabaseServerClient();
+  const { user, supabase } = await requireUser();
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -30,15 +28,6 @@ export default async function CreatorApplyPage() {
           Creators can post jobs, sell items, and publish courses.
         </p>
       </header>
-
-      <section className="space-y-3">
-        <h2 className="font-semibold">Requirements</h2>
-        <ul className="list-disc list-inside text-sm text-gray-600">
-          <li>Complete profile</li>
-          <li>Clear description of what you want to build</li>
-          <li>Quality over quantity</li>
-        </ul>
-      </section>
 
       <CreatorApplyForm userId={user.id} />
     </main>

@@ -5,7 +5,7 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 export default async function AdminMarketplacePage() {
-  const user = await requireCreator("/admin/marketplace");
+  const { user } = await requireCreator();
   const supabase = await createSupabaseServerClient();
 
   const { data: items, error } = await supabase

@@ -1,12 +1,10 @@
 import { requireUser } from "@/lib/auth/requireUser";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requestCreatorAccess } from "./actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function BecomeCreatorPage() {
-  const user = await requireUser("/become-creator");
-  const supabase = await createSupabaseServerClient();
+  const { user, supabase } = await requireUser();
 
   const { data: profile } = await supabase
     .from("profiles")

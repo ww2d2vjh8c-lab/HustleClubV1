@@ -34,7 +34,7 @@ export default async function ApplicantsPage({
 }: {
   searchParams: { job?: string };
 }) {
-  const user = await requireUser("/admin/jobs/applicants");
+const { user } = await requireUser();
   const supabase = await createSupabaseServerClient();
 
   const jobId = searchParams.job;

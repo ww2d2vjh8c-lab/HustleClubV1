@@ -1,35 +1,44 @@
+// app/profile/page.tsx
 import AvatarUploader from "@/components/profile/AvatarUploader";
 import ProfileForm from "@/components/profile/ProfileForm";
 import ProfileCompletion from "@/components/profile/ProfileCompletion";
-import { requireUser } from "@/lib/auth/requireUser";
+import { requireUser } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
-  const user = await requireUser("/profile");
+  const { user } = await requireUser();
   const supabase = await createSupabaseServerClient();
 
-  /* ───────────── PROFILE ───────────── */
-  const { data: profile } = await supabase
+  let { data: profile } = await supabase
     .from("profiles")
     .select("username, full_name, bio, avatar_url, role")
     .eq("id", user.id)
     .single();
 
-  // Create profile once (safe)
+  // Safe profile bootstrap (NO redirect loop)
   if (!profile) {
-    await supabase.from("profiles").insert({
+    const { error } = await supabase.from("profiles").insert({
       id: user.id,
       role: "user",
     });
 
-    redirect("/profile");
+    if (error) {
+      console.error("Profile creation failed", error);
+      throw new Error("Unable to initialize profile");
+    }
+
+    const { data: newProfile } = await supabase
+      .from("profiles")
+      .select("username, full_name, bio, avatar_url, role")
+      .eq("id", user.id)
+      .single();
+
+    profile = newProfile!;
   }
 
-  /* ───────── CREATOR REQUEST ───────── */
   const { data: creatorRequest } = await supabase
     .from("creator_requests")
     .select("id, status, reason")
@@ -38,7 +47,6 @@ export default async function ProfilePage() {
     .limit(1)
     .maybeSingle();
 
-  /* ───────────── UI ───────────── */
   return (
     <main className="max-w-xl mx-auto p-6 space-y-8">
       <header>
@@ -48,7 +56,6 @@ export default async function ProfilePage() {
         </p>
       </header>
 
-      {/* PROFILE COMPLETION */}
       <ProfileCompletion
         avatarUrl={profile.avatar_url}
         username={profile.username}
@@ -56,25 +63,21 @@ export default async function ProfilePage() {
         bio={profile.bio}
       />
 
-      {/* CREATOR STATUS */}
       <section className="border rounded-xl p-4 space-y-2 bg-gray-50">
         <h2 className="font-semibold">Creator Status</h2>
 
-        {/* ALREADY CREATOR */}
         {profile.role === "creator" && (
           <p className="text-sm text-green-600 font-medium">
             ✅ You are a creator
           </p>
         )}
 
-        {/* PENDING */}
         {creatorRequest?.status === "pending" && (
           <p className="text-sm text-yellow-600">
             ⏳ Your creator request is under review
           </p>
         )}
 
-        {/* REJECTED */}
         {creatorRequest?.status === "rejected" && (
           <div className="space-y-1">
             <p className="text-sm text-red-600 font-medium">
@@ -87,33 +90,24 @@ export default async function ProfilePage() {
               </p>
             )}
 
-            <Link
-              href="/creator/apply"
-              className="inline-block text-sm text-blue-600 mt-2"
-            >
+            <Link href="/creator/apply" className="text-sm text-blue-600">
               Apply again
             </Link>
           </div>
         )}
 
-        {/* NO REQUEST */}
         {!creatorRequest && profile.role !== "creator" && (
-          <Link
-            href="/creator/apply"
-            className="inline-block text-sm text-blue-600"
-          >
+          <Link href="/creator/apply" className="text-sm text-blue-600">
             Apply to become a creator
           </Link>
         )}
       </section>
 
-      {/* AVATAR */}
       <section>
         <h2 className="font-semibold mb-2">Avatar</h2>
         <AvatarUploader userId={user.id} />
       </section>
 
-      {/* PROFILE FORM */}
       <ProfileForm
         userId={user.id}
         initialUsername={profile.username}

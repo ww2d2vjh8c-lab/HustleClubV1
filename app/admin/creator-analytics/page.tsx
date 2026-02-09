@@ -1,53 +1,69 @@
 import { requireAdmin } from "@/lib/supabase/auth";
+import StatCard from "@/components/admin/StatCard";
 
 export const dynamic = "force-dynamic";
 
 export default async function CreatorAnalyticsPage() {
   const { supabase } = await requireAdmin();
 
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/creator-analytics`,
-    { cache: "no-store" }
-  );
-
-  const data = await res.json();
+  const [
+    users,
+    creators,
+    pendingCreators,
+    jobs,
+    applications,
+    listings,
+  ] = await Promise.all([
+    supabase.from("profiles").select("id", { count: "exact", head: true }),
+    supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "creator"),
+    supabase
+      .from("creator_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
+    supabase.from("jobs").select("id", { count: "exact", head: true }),
+    supabase
+      .from("job_applications")
+      .select("id", { count: "exact", head: true }),
+    supabase
+      .from("marketplace_items")
+      .select("id", { count: "exact", head: true }),
+  ]);
 
   return (
-    <main className="max-w-4xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Creator Analytics</h1>
+    <main className="max-w-6xl mx-auto p-6 space-y-8">
+      <header>
+        <h1 className="text-2xl font-bold">Admin Analytics</h1>
+        <p className="text-sm text-gray-600">
+          Platform overview & growth signals
+        </p>
+      </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Stat label="Total Requests" value={data.total} />
-        <Stat label="Approved" value={data.approved} />
-        <Stat label="Rejected" value={data.rejected} />
-        <Stat label="Pending" value={data.pending} />
-      </div>
+      {/* METRICS GRID */}
+      <section className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <StatCard label="Total Users" value={users.count ?? 0} />
+        <StatCard label="Creators" value={creators.count ?? 0} />
+        <StatCard
+          label="Pending Creator Requests"
+          value={pendingCreators.count ?? 0}
+        />
+        <StatCard label="Jobs Posted" value={jobs.count ?? 0} />
+        <StatCard
+          label="Job Applications"
+          value={applications.count ?? 0}
+        />
+        <StatCard
+          label="Marketplace Listings"
+          value={listings.count ?? 0}
+        />
+      </section>
 
-      <div className="grid grid-cols-2 gap-4">
-        <Stat
-          label="Approval Rate"
-          value={`${data.approvalRate}%`}
-        />
-        <Stat
-          label="Avg Review Time"
-          value={`${data.avgReviewHours} hrs`}
-        />
-      </div>
+      {/* STRIPE PLACEHOLDER */}
+      <section className="rounded-xl border bg-gray-50 p-6 text-sm text-gray-600">
+        💳 Revenue analytics will appear here once Stripe is connected.
+      </section>
     </main>
-  );
-}
-
-function Stat({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number;
-}) {
-  return (
-    <div className="border rounded-xl p-4 bg-white">
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="text-2xl font-bold">{value}</p>
-    </div>
   );
 }

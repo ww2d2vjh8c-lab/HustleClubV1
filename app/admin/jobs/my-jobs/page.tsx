@@ -12,7 +12,7 @@ type JobRow = {
 };
 
 export default async function MyJobsPage() {
-  const user = await requireUser("/admin/jobs/my-jobs");
+const { user } = await requireUser();
   const supabase = await createSupabaseServerClient();
 
   const { data: jobs, error } = await supabase

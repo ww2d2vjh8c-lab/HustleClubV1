@@ -4,17 +4,22 @@ import { requireUser } from "@/lib/auth/requireUser";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function markOrderShipped(orderId: string) {
-  const user = await requireUser("/admin/marketplace/orders");
+  // ✅ Any logged-in seller can do this
+  const { user } = await requireUser();
   const supabase = await createSupabaseServerClient();
 
   // 1️⃣ Ownership check
-  const { data: order } = await supabase
+  const { data: order, error } = await supabase
     .from("marketplace_orders")
     .select("id, status, seller_id")
     .eq("id", orderId)
     .single();
 
-  if (!order || order.seller_id !== user.id) {
+  if (error || !order) {
+    throw new Error("Order not found");
+  }
+
+  if (order.seller_id !== user.id) {
     throw new Error("Unauthorized");
   }
 
@@ -23,11 +28,15 @@ export async function markOrderShipped(orderId: string) {
   }
 
   // 2️⃣ Update status
-  await supabase
+  const { error: updateError } = await supabase
     .from("marketplace_orders")
     .update({
       status: "shipped",
       shipped_at: new Date().toISOString(),
     })
     .eq("id", orderId);
+
+  if (updateError) {
+    throw updateError;
+  }
 }

@@ -1,27 +1,25 @@
 "use client";
 
-import { startImpersonation } from "@/lib/admin/impersonation";
+import { startImpersonation } from "@/lib/admin/impersonation.actions";
 import { useTransition } from "react";
 
-export default function ImpersonateButton({
-  userId,
-}: {
+type Props = {
   userId: string;
-}) {
-  const [pending, startTransition] = useTransition();
+  userRole: "user" | "creator" | "admin";
+};
+
+export default function ImpersonateButton({ userId, userRole }: Props) {
+  const [isPending, startTransition] = useTransition();
+
+  if (userRole === "admin") return <span className="text-xs text-gray-400">—</span>;
 
   return (
     <button
-      onClick={() =>
-        startTransition(async () => {
-          await startImpersonation(userId);
-          window.location.href = "/"; // reload as impersonated user
-        })
-      }
-      disabled={pending}
-      className="text-xs px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+      disabled={isPending}
+      onClick={() => startTransition(() => startImpersonation(userId))}
+      className="text-xs px-3 py-1 rounded border hover:bg-gray-100"
     >
-      {pending ? "Switching…" : "Impersonate"}
+      {isPending ? "Starting…" : "Impersonate"}
     </button>
   );
 }

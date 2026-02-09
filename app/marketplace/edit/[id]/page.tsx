@@ -9,7 +9,8 @@ export default async function EditItemPage({
 }: {
   params: { id: string };
 }) {
-  const user = await requireUser("/marketplace/my-items");
+  // ✅ CORRECT: destructure
+  const { user } = await requireUser();
   const supabase = await createSupabaseServerClient();
 
   const { data: item } = await supabase

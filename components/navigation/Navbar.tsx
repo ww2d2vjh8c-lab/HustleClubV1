@@ -3,72 +3,91 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
-type ProfileRole = "user" | "creator" | "admin" | null;
+type ProfileRole = "user" | "creator" | "admin";
 
 export default function Navbar() {
   const supabase = createSupabaseClient();
 
-  const [user, setUser] = useState<any>(null);
-  const [role, setRole] = useState<ProfileRole>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<ProfileRole>("user");
   const [loading, setLoading] = useState(true);
   const [pendingCreators, setPendingCreators] = useState(0);
 
   useEffect(() => {
     let mounted = true;
 
-    async function loadUser() {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+    async function loadInitialSession() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-        if (!mounted) return;
+      if (!mounted) return;
 
-        setUser(user);
+      setUser(session?.user ?? null);
 
-        if (!user) {
-          setRole(null);
-          return;
+      if (session?.user) {
+        await loadRole(session.user.id);
+      }
+
+      setLoading(false);
+    }
+
+    async function loadRole(userId: string) {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", userId)
+        .single();
+
+      if (!mounted) return;
+
+      if (!error && data?.role) {
+        setRole(data.role);
+      } else {
+        setRole("user");
+      }
+
+      // Admin badge
+      if (data?.role === "admin") {
+        try {
+          const res = await fetch("/api/admin/pending-creator-requests", {
+            cache: "no-store",
+          });
+          const json = await res.json();
+          setPendingCreators(json?.count ?? 0);
+        } catch {
+          setPendingCreators(0);
         }
-
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", user.id)
-          .single();
-
-        if (error) {
-          console.error("Failed to load profile role", error);
-          setRole("user");
-          return;
-        }
-
-        const userRole: ProfileRole = profile?.role ?? "user";
-        setRole(userRole);
-
-        // 🔔 ADMIN ONLY — pending creator requests count
-        if (userRole === "admin") {
-          try {
-            const res = await fetch(
-              "/api/admin/pending-creator-requests",
-              { cache: "no-store" }
-            );
-            const data = await res.json();
-            setPendingCreators(data?.count ?? 0);
-          } catch {
-            setPendingCreators(0);
-          }
-        }
-      } finally {
-        if (mounted) setLoading(false);
       }
     }
 
-    loadUser();
+    // 1️⃣ Initial load
+    loadInitialSession();
+
+    // 2️⃣ Listen to auth changes (CRITICAL)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (!mounted) return;
+
+        setUser(session?.user ?? null);
+
+        if (session?.user) {
+          await loadRole(session.user.id);
+        } else {
+          setRole("user");
+        }
+
+        setLoading(false);
+      }
+    );
 
     return () => {
       mounted = false;
+      subscription.unsubscribe();
     };
   }, [supabase]);
 
@@ -86,27 +105,21 @@ export default function Navbar() {
           <Link href="/jobs">Jobs</Link>
           <Link href="/marketplace">Marketplace</Link>
 
-          {/* USER → CREATOR CTA */}
           {!loading && user && role === "user" && (
-            <Link
-              href="/creator/apply"
-              className="text-blue-600 font-medium"
-            >
+            <Link href="/creator/apply" className="text-blue-600 font-medium">
               Become a Creator
             </Link>
           )}
 
-          {/* CREATOR DASHBOARD */}
           {!loading && user && role === "creator" && (
             <Link
-              href="/admin/dashboard"
+              href="/creator/dashboard"
               className="text-green-600 font-medium"
             >
               Creator Dashboard
             </Link>
           )}
 
-          {/* ADMIN: CREATOR REQUESTS */}
           {!loading && role === "admin" && (
             <Link
               href="/admin/creator-requests"
@@ -121,17 +134,12 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* ADMIN: AUDIT LOGS */}
           {!loading && role === "admin" && (
-            <Link
-              href="/admin/audit-logs"
-              className="text-gray-700 font-medium"
-            >
+            <Link href="/admin/audit-logs" className="text-gray-700 font-medium">
               Audit Logs
             </Link>
           )}
 
-          {/* ADMIN: CREATOR ANALYTICS */}
           {!loading && role === "admin" && (
             <Link
               href="/admin/creator-analytics"
@@ -147,7 +155,6 @@ export default function Navbar() {
           {!loading && user ? (
             <>
               <Link href="/profile">Profile</Link>
-
               <form action="/signout" method="post">
                 <button type="submit" className="text-red-500">
                   Sign out

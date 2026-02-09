@@ -1,16 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const supabase = createSupabaseClient();
   const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 🔑 Listen for auth state change
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") {
+        router.replace("/"); // replace, not push
+        router.refresh();    // force server re-render
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase, router]);
 
   async function handleLogin() {
     setLoading(true);
@@ -24,10 +39,7 @@ export default function LoginPage() {
     if (error) {
       setError(error.message);
       setLoading(false);
-      return;
     }
-
-    router.push("/");
   }
 
   return (

@@ -20,7 +20,7 @@ export default async function JobApplicantsPage({
 }: {
   params: { id: string };
 }) {
-  const user = await requireUser("/admin/jobs");
+const { user } = await requireUser();
   const supabase = await createSupabaseServerClient();
 
   /* 1️⃣ Verify job ownership */

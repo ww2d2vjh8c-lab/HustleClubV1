@@ -9,7 +9,7 @@ export default async function DeleteItemPage({
 }: {
   params: { id: string };
 }) {
-  const user = await requireUser("/marketplace/my-items");
+  const { user } = await requireUser(); // ✅ FIXED
   const supabase = await createSupabaseServerClient();
 
   const { data: item } = await supabase
@@ -30,7 +30,9 @@ export default async function DeleteItemPage({
   async function deleteItem() {
     "use server";
 
+    const { user } = await requireUser(); // ✅ FIXED
     const supabase = await createSupabaseServerClient();
+
     await supabase
       .from("marketplace_items")
       .delete()

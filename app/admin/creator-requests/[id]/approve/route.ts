@@ -8,7 +8,7 @@ export async function POST(
 ) {
   const { id } = await context.params;
 
-  const user = await requireUser("/admin/creator-requests");
+const { user } = await requireUser();
   const supabase = await createSupabaseServerClient();
 
   /* ───── Fetch request with ownership check ───── */

@@ -13,7 +13,8 @@ type OrderRow = {
 };
 
 export default async function SellerOrdersPage() {
-  const user = await requireUser("/admin/marketplace/orders");
+  // ✅ CORRECT USAGE
+  const { user } = await requireUser();
   const supabase = await createSupabaseServerClient();
 
   const { data, error } = await supabase

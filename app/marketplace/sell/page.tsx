@@ -4,7 +4,7 @@ import PostItemForm from "@/components/marketplace/PostItemForm";
 export const dynamic = "force-dynamic";
 
 export default async function SellPage() {
-  await requireUser("/marketplace/sell");
+  await requireUser();
 
   return (
     <main className="max-w-xl mx-auto px-6 py-12 space-y-6">
@@ -19,4 +19,3 @@ export default async function SellPage() {
     </main>
   );
 }
-

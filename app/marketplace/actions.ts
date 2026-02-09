@@ -5,7 +5,7 @@ import { requireUser } from "@/lib/auth/requireUser";
 import { redirect } from "next/navigation";
 
 export async function publishItem(itemId: string) {
-  const user = await requireUser();
+  const { user } = await requireUser(); // ✅ FIX
   const supabase = await createSupabaseServerClient();
 
   await supabase
@@ -18,7 +18,7 @@ export async function publishItem(itemId: string) {
 }
 
 export async function unpublishItem(itemId: string) {
-  const user = await requireUser();
+  const { user } = await requireUser(); // ✅ FIX
   const supabase = await createSupabaseServerClient();
 
   await supabase
@@ -31,7 +31,7 @@ export async function unpublishItem(itemId: string) {
 }
 
 export async function deleteItem(itemId: string) {
-  const user = await requireUser();
+  const { user } = await requireUser(); // ✅ FIX
   const supabase = await createSupabaseServerClient();
 
   await supabase

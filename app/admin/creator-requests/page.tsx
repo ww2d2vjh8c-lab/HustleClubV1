@@ -23,7 +23,7 @@ export default async function CreatorRequestsPage({
 }: {
   searchParams: { status?: Status };
 }) {
-  const user = await requireUser("/admin/creator-requests");
+const { user } = await requireUser();
   const supabase = await createSupabaseServerClient();
 
   /* ───────── ADMIN GUARD ───────── */

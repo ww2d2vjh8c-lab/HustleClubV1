@@ -6,7 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 /* ───────────────── CORE ACCEPT LOGIC ───────────────── */
 
 export async function acceptApplication(applicationId: string) {
-  const user = await requireUser("/admin/jobs/applicants");
+  const { user } = await requireUser(); // ✅ FIX 1
   const supabase = await createSupabaseServerClient();
 
   const { data, error } = await supabase
@@ -24,7 +24,9 @@ export async function acceptApplication(applicationId: string) {
     .eq("id", applicationId)
     .single();
 
-  if (error || !data) throw new Error("Application not found");
+  if (error || !data) {
+    throw new Error("Application not found");
+  }
 
   const job = data.jobs?.[0];
 
@@ -57,10 +59,7 @@ export async function acceptApplication(applicationId: string) {
 }
 
 /* ───────────────── COMPATIBILITY EXPORT ───────────────── */
-/**
- * This keeps ApplicationActions & StatusActions working
- * without refactoring imports everywhere.
- */
+
 export async function updateApplicationStatus(
   applicationId: string,
   status: "pending" | "accepted" | "rejected"
@@ -69,7 +68,7 @@ export async function updateApplicationStatus(
     return acceptApplication(applicationId);
   }
 
-  const user = await requireUser("/admin/jobs/applicants");
+  const { user } = await requireUser(); // ✅ FIX 2
   const supabase = await createSupabaseServerClient();
 
   await supabase

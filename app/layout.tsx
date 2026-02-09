@@ -1,26 +1,20 @@
 import "./globals.css";
-import type { ReactNode } from "react";
 import Navbar from "@/components/navigation/Navbar";
 import StopImpersonationBanner from "@/components/admin/StopImpersonationBanner";
 import { cookies } from "next/headers";
-
-export const metadata = {
-  title: "HustleClub",
-  description: "Learn, earn, and trade with creators",
-};
+import { IMPERSONATE_COOKIE } from "@/lib/admin/impersonation/constants";
 
 export default async function RootLayout({
   children,
 }: {
-  children: ReactNode;
+  children: React.ReactNode;
 }) {
-  // ✅ cookies() IS ASYNC IN NEXT 16
   const cookieStore = await cookies();
-  const impersonating = cookieStore.get("impersonator_id");
+  const impersonating = cookieStore.get(IMPERSONATE_COOKIE);
 
   return (
     <html lang="en">
-      <body className="min-h-screen bg-gray-50 text-gray-900">
+      <body>
         <Navbar />
         {children}
         {impersonating && <StopImpersonationBanner />}

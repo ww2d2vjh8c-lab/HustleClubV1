@@ -1,5 +1,4 @@
 import { requireUser } from "@/lib/auth/requireUser";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -12,20 +11,17 @@ type Application = {
 };
 
 export default async function MyJobsPage() {
-  const user = await requireUser("/my-jobs");
-  const supabase = await createSupabaseServerClient();
+  const { user, supabase } = await requireUser();
 
   const { data, error } = await supabase
     .from("job_applications")
-    .select(
-      `
-        created_at,
-        status,
-        job:jobs (
-          title
-        )
-      `
-    )
+    .select(`
+      created_at,
+      status,
+      job:jobs (
+        title
+      )
+    `)
     .eq("applicant_id", user.id)
     .order("created_at", { ascending: false })
     .returns<Application[]>();
@@ -43,7 +39,9 @@ export default async function MyJobsPage() {
       <h1 className="text-2xl font-bold">My Applications</h1>
 
       {(!data || data.length === 0) && (
-        <p className="text-gray-500">You haven’t applied to any jobs yet.</p>
+        <p className="text-gray-500">
+          You haven’t applied to any jobs yet.
+        </p>
       )}
 
       <section className="space-y-4">
@@ -65,9 +63,7 @@ export default async function MyJobsPage() {
       </section>
     </main>
   );
-}
-
-function StatusBadge({ status }: { status: string }) {
+}function StatusBadge({ status }: { status: string }) {
   if (status === "accepted") {
     return (
       <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700">

@@ -8,7 +8,7 @@ export async function updateItem(
   itemId: string,
   formData: FormData
 ) {
-  const user = await requireUser();
+  const { user } = await requireUser();
   const supabase = await createSupabaseServerClient();
 
   const title = formData.get("title") as string;
@@ -29,7 +29,7 @@ export async function updateItem(
 }
 
 export async function deleteItem(itemId: string) {
-  const user = await requireUser();
+  const { user } = await requireUser();
   const supabase = await createSupabaseServerClient();
 
   await supabase

@@ -1,5 +1,4 @@
 import { requireUser } from "@/lib/auth/requireUser";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import MarketplaceCard from "@/components/marketplace/MarketplaceCard";
 import CardSkeleton from "@/components/ui/CardSkeleton";
 import EmptyState from "@/components/ui/EmptyState";
@@ -8,8 +7,7 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 export default async function MyItemsPage() {
-  const user = await requireUser("/marketplace/my-items");
-  const supabase = await createSupabaseServerClient();
+  const { user, supabase } = await requireUser();
 
   const { data, error } = await supabase
     .from("marketplace_items")

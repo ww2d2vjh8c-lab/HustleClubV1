@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth/requireUser";
 
 export async function requestCreatorAccess() {
-  const user = await requireUser("/become-creator");
+  const { user } = await requireUser(); // ✅ NO ARG
   const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase

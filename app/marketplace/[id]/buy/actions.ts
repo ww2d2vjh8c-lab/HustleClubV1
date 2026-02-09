@@ -1,11 +1,9 @@
 "use server";
 
 import { requireUser } from "@/lib/auth/requireUser";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function createOrder(itemId: string) {
-  const user = await requireUser("/marketplace");
-  const supabase = await createSupabaseServerClient();
+  const { user, supabase } = await requireUser();
 
   // 1️⃣ Fetch item
   const { data: item } = await supabase
@@ -30,7 +28,9 @@ export async function createOrder(itemId: string) {
     price: item.price,
   });
 
-  if (error) throw new Error("Failed to create order");
+  if (error) {
+    throw new Error("Failed to create order");
+  }
 
   // 3️⃣ Lock item
   await supabase

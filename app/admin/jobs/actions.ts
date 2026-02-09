@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth/requireUser";
 
 export async function toggleJobStatus(jobId: string) {
-  const user = await requireUser("/admin/jobs");
+const { user } = await requireUser();
   const supabase = await createSupabaseServerClient();
 
   // 🔒 Verify ownership + get current status

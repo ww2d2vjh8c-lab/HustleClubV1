@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 export default async function PostJobPage() {
-  const user = await requireUser("/admin/jobs/new");
+const { user } = await requireUser();
 
   async function createJob(formData: FormData) {
     "use server";
