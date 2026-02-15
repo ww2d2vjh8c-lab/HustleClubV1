@@ -1,23 +1,39 @@
 import "./globals.css";
 import Navbar from "@/components/navigation/Navbar";
-import StopImpersonationBanner from "@/components/admin/StopImpersonationBanner";
-import { cookies } from "next/headers";
-import { IMPERSONATE_COOKIE } from "@/lib/admin/impersonation/constants";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+export const dynamic = "force-dynamic";
 
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();
-  const impersonating = cookieStore.get(IMPERSONATE_COOKIE);
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let role: "user" | "creator" | "admin" = "user";
+
+  if (user) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (data?.role) {
+      role = data.role;
+    }
+  }
 
   return (
     <html lang="en">
       <body>
-        <Navbar />
+        <Navbar user={user} role={role} />
         {children}
-        {impersonating && <StopImpersonationBanner />}
       </body>
     </html>
   );

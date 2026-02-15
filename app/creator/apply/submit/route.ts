@@ -9,14 +9,14 @@ export async function POST(req: Request) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.redirect("/login");
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   const formData = await req.formData();
   const message = formData.get("message")?.toString();
 
   if (!message) {
-    return NextResponse.redirect("/creator/apply");
+    return NextResponse.redirect(new URL("/creator/apply", req.url));
   }
 
   await supabase.from("creator_requests").insert({
@@ -24,5 +24,5 @@ export async function POST(req: Request) {
     message,
   });
 
-  return NextResponse.redirect("/creator/apply");
+  return NextResponse.redirect(new URL("/creator/apply", req.url));
 }

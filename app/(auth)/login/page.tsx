@@ -1,33 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const supabase = createSupabaseClient();
-  const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 🔑 Listen for auth state change
-  useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN") {
-        router.replace("/"); // replace, not push
-        router.refresh();    // force server re-render
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase, router]);
-
-  async function handleLogin() {
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
     setLoading(true);
     setError(null);
 
@@ -39,40 +24,57 @@ export default function LoginPage() {
     if (error) {
       setError(error.message);
       setLoading(false);
+      return;
     }
+
+    // Give Supabase a moment to persist cookie
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 200);
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md bg-white border rounded-xl shadow-sm p-6 space-y-6">
-        <h1 className="text-2xl font-bold text-center">Welcome back</h1>
+      <form
+        onSubmit={handleLogin}
+        className="w-full max-w-md bg-white p-6 space-y-4 border rounded-xl shadow-sm"
+      >
+        <h1 className="text-2xl font-bold text-center">
+          Welcome Back
+        </h1>
 
         <input
           type="email"
-          placeholder="Email"
-          className="w-full border rounded px-3 py-2"
+          required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+          className="w-full border px-3 py-2 rounded-md"
         />
 
         <input
           type="password"
-          placeholder="Password"
-          className="w-full border rounded px-3 py-2"
+          required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          className="w-full border px-3 py-2 rounded-md"
         />
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && (
+          <p className="text-red-500 text-sm">
+            {error}
+          </p>
+        )}
 
         <button
-          onClick={handleLogin}
+          type="submit"
           disabled={loading}
-          className="w-full bg-black text-white py-2 rounded"
+          className="w-full bg-black text-white py-2 rounded-md disabled:opacity-60"
         >
-          {loading ? "Signing in..." : "Sign in"}
+          {loading ? "Signing in..." : "Sign In"}
         </button>
-      </div>
+      </form>
     </div>
   );
 }

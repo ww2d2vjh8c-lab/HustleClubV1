@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function requireCreator() {
@@ -5,21 +6,29 @@ export async function requireCreator() {
 
   const {
     data: { user },
-    error,
   } = await supabase.auth.getUser();
 
-  if (error || !user) {
-    throw new Error("Unauthorized");
+  // 1️⃣ Not logged in
+  if (!user) {
+    redirect("/login");
   }
 
-  const { data: profile, error: roleError } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  const { data: profile, error } = await supabase
+  .from("profiles")
+  .select("role")
+  .eq("id", user.id)
+  .maybeSingle();
 
-  if (roleError || profile?.role !== "creator") {
-    throw new Error("Creator access required");
+if (error || !profile) {
+  redirect("/profile");
+}
+
+  // 2️⃣ Not creator or admin
+  if (
+    profile?.role !== "creator" &&
+    profile?.role !== "admin"
+  ) {
+    redirect("/creator/apply");
   }
 
   return { supabase, user };

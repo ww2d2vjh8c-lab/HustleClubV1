@@ -6,8 +6,7 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 export default async function CreatorDashboardPage() {
-  const { user } = await requireCreator();
-  const supabase = await createSupabaseServerClient();
+  const { user, supabase } = await requireCreator();
 
   const { data: jobs } = await supabase
     .from("jobs")
