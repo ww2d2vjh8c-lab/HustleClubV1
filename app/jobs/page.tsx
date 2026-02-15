@@ -7,7 +7,7 @@ import ApplyButton from "@/components/jobs/ApplyButton";
 export const dynamic = "force-dynamic";
 
 type JobRow = {
-  id: string; // bigint → string
+  id: number;
   title: string;
   description: string | null;
   created_at: string;
@@ -24,7 +24,6 @@ type JobRow = {
 export default async function JobsPage() {
   const supabase = await createSupabaseServerClient();
 
-  /* ───────────── AUTH ───────────── */
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -33,27 +32,25 @@ export default async function JobsPage() {
     ? await isProfileComplete(user.id)
     : false;
 
-  /* ───────────── JOBS ───────────── */
   const { data: jobs, error } = await supabase
     .from("jobs")
     .select(
       `
+      id,
+      title,
+      description,
+      created_at,
+      is_open,
+      profile:profiles!jobs_creator_id_fkey (
         id,
-        title,
-        description,
-        created_at,
-        is_open,
-        profile:profiles!jobs_creator_id_fkey (
-          id,
-          username,
-          full_name,
-          avatar_url,
-          bio
-        )
+        username,
+        full_name,
+        avatar_url,
+        bio
+      )
       `
     )
-    .order("created_at", { ascending: false })
-    .returns<JobRow[]>();
+    .order("created_at", { ascending: false });
 
   if (error) {
     return (
@@ -63,7 +60,6 @@ export default async function JobsPage() {
     );
   }
 
-  /* ───────────── UI ───────────── */
   return (
     <main className="max-w-5xl mx-auto px-6 py-12 space-y-10">
       <header className="flex justify-between items-center">
@@ -81,8 +77,7 @@ export default async function JobsPage() {
 
       <section className="space-y-6">
         {jobs?.map((job) => {
-          const creator = job.profile[0] ?? null;
-          const numericJobId = Number(job.id);
+          const creator = job.profile?.[0] ?? null;
 
           return (
             <article
@@ -106,13 +101,26 @@ export default async function JobsPage() {
                 </p>
               )}
 
-              {/* ACTION */}
               {job.is_open ? (
                 user && profileComplete ? (
-                  <ApplyButton jobId={numericJobId} />
-                ) : null
+                  <ApplyButton jobId={job.id} />
+                ) : user ? (
+                  <Link
+                    href="/profile"
+                    className="text-sm text-yellow-600"
+                  >
+                    Complete profile to apply
+                  </Link>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="text-sm text-blue-600"
+                  >
+                    Login to apply
+                  </Link>
+                )
               ) : (
-                <span className="text-sm font-medium text-gray-400">
+                <span className="text-sm text-gray-400">
                   Applications closed
                 </span>
               )}
