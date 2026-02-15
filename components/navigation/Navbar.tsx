@@ -14,18 +14,24 @@ export default function Navbar({
 }) {
   return (
     <header className="sticky top-0 z-50 bg-white border-b">
-      <div className="max-w-6xl mx-auto h-16 px-4 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        
+        {/* Logo */}
         <Link href="/" className="font-bold text-lg">
           HustleClub
         </Link>
 
-        <nav className="hidden md:flex gap-6 text-sm items-center">
+        {/* Navigation Links (VISIBLE ON ALL DEVICES) */}
+        <nav className="flex flex-wrap gap-4 text-sm items-center">
           <Link href="/courses">Courses</Link>
           <Link href="/jobs">Jobs</Link>
           <Link href="/marketplace">Marketplace</Link>
 
           {user && role === "user" && (
-            <Link href="/creator/apply" className="text-blue-600 font-medium">
+            <Link
+              href="/creator/apply"
+              className="text-blue-600 font-medium"
+            >
               Become a Creator
             </Link>
           )}
@@ -49,7 +55,8 @@ export default function Navbar({
           )}
         </nav>
 
-        <div className="flex items-center gap-4 text-sm">
+        {/* Auth Buttons */}
+        <div className="flex gap-4 text-sm">
           {user ? (
             <>
               <Link href="/profile">Profile</Link>
