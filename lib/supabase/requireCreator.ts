@@ -8,26 +8,25 @@ export async function requireCreator() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 1️⃣ Not logged in
+  console.log("USER:", user);
+
   if (!user) {
     redirect("/login");
   }
 
   const { data: profile, error } = await supabase
-  .from("profiles")
-  .select("role")
-  .eq("id", user.id)
-  .maybeSingle();
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
 
-if (error || !profile) {
-  redirect("/profile");
-}
+  console.log("PROFILE:", profile, "ERROR:", error);
 
-  // 2️⃣ Not creator or admin
-  if (
-    profile?.role !== "creator" &&
-    profile?.role !== "admin"
-  ) {
+  if (!profile) {
+    redirect("/profile");
+  }
+
+  if (profile.role !== "creator" && profile.role !== "admin") {
     redirect("/creator/apply");
   }
 

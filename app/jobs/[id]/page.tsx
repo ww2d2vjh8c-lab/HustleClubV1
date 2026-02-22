@@ -6,11 +6,28 @@ import ApplyButton from "@/components/jobs/ApplyButton";
 
 export const dynamic = "force-dynamic";
 
+type JobWithCreator = {
+  id: number;
+  title: string;
+  description: string | null;
+  created_at: string;
+  is_open: boolean;
+  profile: {
+    id: string;
+    username: string | null;
+    full_name: string | null;
+    avatar_url: string | null;
+    bio: string | null;
+  }[] | null;
+};
+
 export default async function JobDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params; // ✅ IMPORTANT FIX
+
   const supabase = await createSupabaseServerClient();
 
   const {
@@ -23,8 +40,7 @@ export default async function JobDetailPage({
 
   const { data: job, error } = await supabase
     .from("jobs")
-    .select(
-      `
+    .select(`
       id,
       title,
       description,
@@ -37,10 +53,9 @@ export default async function JobDetailPage({
         avatar_url,
         bio
       )
-      `
-    )
-    .eq("id", params.id)
-    .single();
+    `)
+    .eq("id", Number(id)) // ✅ use id, NOT params.id
+    .single<JobWithCreator>();
 
   if (error || !job) {
     return (
@@ -70,12 +85,14 @@ export default async function JobDetailPage({
           Posted on {new Date(job.created_at).toLocaleDateString()}
         </p>
 
-        <p className="mt-4 text-gray-700 whitespace-pre-line">
-          {job.description}
-        </p>
+        {job.description && (
+          <p className="mt-4 text-gray-700 whitespace-pre-line">
+            {job.description}
+          </p>
+        )}
       </div>
 
-      <div className="pt-4">
+      <div className="pt-4 space-y-3">
         {!job.is_open && (
           <span className="text-sm text-gray-400">
             Applications closed
