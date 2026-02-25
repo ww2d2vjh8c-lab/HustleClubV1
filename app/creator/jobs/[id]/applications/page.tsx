@@ -17,6 +17,7 @@ async function updateStatus(
 
   const supabase = await createSupabaseServerClient();
 
+  // 1️⃣ Update selected application
   const { error } = await supabase
     .from("job_applications")
     .update({ status: newStatus })
@@ -25,6 +26,23 @@ async function updateStatus(
   if (error) {
     console.log("STATUS UPDATE ERROR:", error);
     throw new Error("Failed to update status");
+  }
+
+  // 2️⃣ If accepted → auto reject others + close job
+  if (newStatus === "accepted") {
+    // Reject all other pending applications
+    await supabase
+      .from("job_applications")
+      .update({ status: "rejected" })
+      .eq("job_id", Number(jobId))
+      .neq("id", applicationId)
+      .eq("status", "pending");
+
+    // Close the job
+    await supabase
+      .from("jobs")
+      .update({ is_open: false })
+      .eq("id", Number(jobId));
   }
 
   redirect(`/creator/jobs/${jobId}/applications`);
@@ -42,12 +60,18 @@ export default async function ApplicationsPage({
   const { user, supabase } = await requireCreator();
 
   /* Verify job ownership */
-  const { data: job } = await supabase
-    .from("jobs")
-    .select("id, title")
-    .eq("id", Number(id))
-    .eq("creator_id", user.id)
-    .single();
+  type Job = {
+  id: number;
+  title: string;
+  is_open: boolean;
+};
+
+const { data: job } = await supabase
+  .from("jobs")
+  .select("id, title, is_open")
+  .eq("id", Number(id))
+  .eq("creator_id", user.id)
+  .single<Job>();
 
   if (!job) {
     redirect("/creator/dashboard");
@@ -102,9 +126,9 @@ export default async function ApplicationsPage({
                 key={app.id}
                 className="border rounded-xl p-6 bg-white shadow-sm hover:shadow-md transition"
               >
-                {/* PROFILE HEADER WITH MODAL */}
+                {/* PROFILE HEADER */}
                 <ApplicantModal applicant={app.applicant}>
-                  <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center gap-4 mb-4 cursor-pointer">
                     <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gray-200">
                       {app.applicant?.avatar_url && (
                         <Image
@@ -138,7 +162,7 @@ export default async function ApplicationsPage({
                     {app.status}
                   </span>
 
-                  {app.status === "pending" && (
+                  {app.status === "pending" && job.is_open && (
                     <div className="flex gap-3">
                       <form
                         action={async () =>

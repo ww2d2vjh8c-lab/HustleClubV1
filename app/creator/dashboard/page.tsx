@@ -1,11 +1,7 @@
 import { requireCreator } from "@/lib/supabase/requireCreator";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
-
-/* ================= PAGE ================= */
 
 type JobRow = {
   id: number;
@@ -40,60 +36,63 @@ export default async function CreatorDashboardPage() {
     );
   }
 
-  /* ✅ SERVER ACTION INSIDE COMPONENT */
-  async function toggleJobStatus(formData: FormData) {
-    "use server";
-
-    const jobId = Number(formData.get("jobId"));
-    const currentStatus = formData.get("currentStatus") === "true";
-
-    const supabase = await createSupabaseServerClient();
-
-    const { error } = await supabase
-      .from("jobs")
-      .update({ is_open: !currentStatus })
-      .eq("id", jobId);
-
-    if (error) {
-      console.log("TOGGLE ERROR:", error);
-      throw new Error("Failed to update job");
-    }
-
-    redirect("/creator/dashboard");
-  }
-
   return (
-    <main className="max-w-5xl mx-auto p-6 space-y-6">
-      <header className="flex items-center justify-between">
+    <main className="max-w-6xl mx-auto p-6 space-y-10">
+      {/* HEADER */}
+      <header className="space-y-4">
         <div>
-          <h1 className="text-2xl font-bold">Creator Dashboard</h1>
+          <h1 className="text-2xl font-bold">
+            Creator Dashboard
+          </h1>
           <p className="text-sm text-gray-600">
-            Manage your jobs and applications
+            Manage your platform content
           </p>
         </div>
 
-        <Link
-          href="/creator/jobs/new"
-          className="px-4 py-2 rounded-md bg-black text-white text-sm"
-        >
-          Post Job
-        </Link>
+        {/* QUICK ACTIONS */}
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/creator/jobs/new"
+            className="px-4 py-2 bg-black text-white rounded-md text-sm"
+          >
+            Post Job
+          </Link>
+
+          <Link
+            href="/creator/courses"
+            className="px-4 py-2 border rounded-md text-sm"
+          >
+            Manage Courses
+          </Link>
+
+          <Link
+            href="/creator/marketplace"
+            className="px-4 py-2 border rounded-md text-sm"
+          >
+            Manage Marketplace
+          </Link>
+        </div>
       </header>
 
-      {(!jobs || jobs.length === 0) && (
-        <p className="text-gray-500">
-          You haven’t posted any jobs yet.
-        </p>
-      )}
-
+      {/* JOB SECTION */}
       <section className="space-y-4">
+        <h2 className="text-lg font-semibold">
+          Your Jobs
+        </h2>
+
+        {(!jobs || jobs.length === 0) && (
+          <p className="text-gray-500">
+            You haven’t posted any jobs yet.
+          </p>
+        )}
+
         {jobs?.map((job) => (
           <div
             key={job.id}
-            className="border rounded-xl p-5 bg-white shadow-sm flex justify-between items-center"
+            className="border rounded-xl p-5 bg-white flex justify-between items-center"
           >
             <div>
-              <h2 className="font-semibold">{job.title}</h2>
+              <h3 className="font-semibold">{job.title}</h3>
 
               <p className="text-sm text-gray-500">
                 Posted on{" "}
@@ -101,56 +100,20 @@ export default async function CreatorDashboardPage() {
               </p>
 
               <p className="text-xs mt-1">
-                Status:{" "}
-                <span
-                  className={
-                    job.is_open
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }
-                >
-                  {job.is_open ? "Open" : "Closed"}
-                </span>
+                Status: {job.is_open ? "Open" : "Closed"}
               </p>
 
               <p className="text-xs mt-1">
-                Applications:{" "}
-                {job.job_applications?.[0]?.count ?? 0}
+                Applications: {job.job_applications?.[0]?.count ?? 0}
               </p>
             </div>
 
-            <div className="flex gap-4 items-center">
-              <Link
-                href={`/creator/jobs/${job.id}/applications`}
-                className="text-sm underline"
-              >
-                View
-              </Link>
-
-              {/* ✅ Proper server action form */}
-              <form action={toggleJobStatus}>
-                <input
-                  type="hidden"
-                  name="jobId"
-                  value={job.id}
-                />
-                <input
-                  type="hidden"
-                  name="currentStatus"
-                  value={String(job.is_open)}
-                />
-                <button
-                  type="submit"
-                  className={`text-sm px-3 py-1 rounded ${
-                    job.is_open
-                      ? "bg-red-600 text-white"
-                      : "bg-green-600 text-white"
-                  }`}
-                >
-                  {job.is_open ? "Close" : "Reopen"}
-                </button>
-              </form>
-            </div>
+            <Link
+              href={`/creator/jobs/${job.id}/applications`}
+              className="text-sm underline"
+            >
+              View
+            </Link>
           </div>
         ))}
       </section>
