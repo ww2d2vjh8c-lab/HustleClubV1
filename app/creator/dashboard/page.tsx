@@ -37,15 +37,15 @@ export default async function CreatorDashboardPage() {
   }
 
   return (
-    <main className="max-w-6xl mx-auto p-6 space-y-10">
-      {/* HEADER */}
+    <main className="max-w-6xl mx-auto p-6 space-y-12">
+      {/* ================= HEADER ================= */}
       <header className="space-y-4">
         <div>
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-3xl font-bold">
             Creator Dashboard
           </h1>
-          <p className="text-sm text-gray-600">
-            Manage your platform content
+          <p className="text-gray-600">
+            Manage your platform content and track performance
           </p>
         </div>
 
@@ -53,30 +53,37 @@ export default async function CreatorDashboardPage() {
         <div className="flex flex-wrap gap-3">
           <Link
             href="/creator/jobs/new"
-            className="px-4 py-2 bg-black text-white rounded-md text-sm"
+            className="px-4 py-2 bg-black text-white rounded-md text-sm hover:bg-gray-800 transition"
           >
             Post Job
           </Link>
 
           <Link
             href="/creator/courses"
-            className="px-4 py-2 border rounded-md text-sm"
+            className="px-4 py-2 border rounded-md text-sm hover:bg-gray-50 transition"
           >
             Manage Courses
           </Link>
 
           <Link
             href="/creator/marketplace"
-            className="px-4 py-2 border rounded-md text-sm"
+            className="px-4 py-2 border rounded-md text-sm hover:bg-gray-50 transition"
           >
             Manage Marketplace
+          </Link>
+
+          <Link
+            href="/creator/analytics"
+            className="px-4 py-2 border rounded-md text-sm hover:bg-gray-50 transition"
+          >
+            Analytics
           </Link>
         </div>
       </header>
 
-      {/* JOB SECTION */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold">
+      {/* ================= JOB SECTION ================= */}
+      <section className="space-y-6">
+        <h2 className="text-xl font-semibold">
           Your Jobs
         </h2>
 
@@ -86,36 +93,50 @@ export default async function CreatorDashboardPage() {
           </p>
         )}
 
-        {jobs?.map((job) => (
-          <div
-            key={job.id}
-            className="border rounded-xl p-5 bg-white flex justify-between items-center"
-          >
-            <div>
-              <h3 className="font-semibold">{job.title}</h3>
-
-              <p className="text-sm text-gray-500">
-                Posted on{" "}
-                {new Date(job.created_at).toLocaleDateString()}
-              </p>
-
-              <p className="text-xs mt-1">
-                Status: {job.is_open ? "Open" : "Closed"}
-              </p>
-
-              <p className="text-xs mt-1">
-                Applications: {job.job_applications?.[0]?.count ?? 0}
-              </p>
-            </div>
-
-            <Link
-              href={`/creator/jobs/${job.id}/applications`}
-              className="text-sm underline"
+        <div className="space-y-4">
+          {jobs?.map((job) => (
+            <div
+              key={job.id}
+              className="border rounded-xl p-6 bg-white flex justify-between items-center hover:shadow-sm transition"
             >
-              View
-            </Link>
-          </div>
-        ))}
+              <div className="space-y-1">
+                <h3 className="font-semibold text-lg">
+                  {job.title}
+                </h3>
+
+                <p className="text-sm text-gray-500">
+                  Posted on{" "}
+                  {new Date(job.created_at).toLocaleDateString()}
+                </p>
+
+                <p className="text-xs">
+                  Status:{" "}
+                  <span
+                    className={
+                      job.is_open
+                        ? "text-green-600"
+                        : "text-gray-400"
+                    }
+                  >
+                    {job.is_open ? "Open" : "Closed"}
+                  </span>
+                </p>
+
+                <p className="text-xs">
+                  Applications:{" "}
+                  {job.job_applications?.[0]?.count ?? 0}
+                </p>
+              </div>
+
+              <Link
+                href={`/creator/jobs/${job.id}/applications`}
+                className="text-sm underline hover:text-gray-600"
+              >
+                View Applications
+              </Link>
+            </div>
+          ))}
+        </div>
       </section>
     </main>
   );
