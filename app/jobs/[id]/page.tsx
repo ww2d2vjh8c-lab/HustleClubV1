@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isProfileComplete } from "@/lib/profile/isProfileComplete";
 import ProfileHoverCard from "@/components/profile/ProfileHoverCard";
 import ApplyButton from "@/components/jobs/ApplyButton";
+import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,8 @@ type JobWithCreator = {
   description: string | null;
   created_at: string;
   is_open: boolean;
+  views: number | null;
+  creator_id: string;
   profile: {
     id: string;
     username: string | null;
@@ -26,7 +29,7 @@ export default async function JobDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params; // ✅ IMPORTANT FIX
+  const { id } = await params;
 
   const supabase = await createSupabaseServerClient();
 
@@ -46,6 +49,8 @@ export default async function JobDetailPage({
       description,
       created_at,
       is_open,
+      views,
+      creator_id,
       profile:profiles!jobs_creator_id_fkey (
         id,
         username,
@@ -54,7 +59,7 @@ export default async function JobDetailPage({
         bio
       )
     `)
-    .eq("id", Number(id)) // ✅ use id, NOT params.id
+    .eq("id", Number(id))
     .single<JobWithCreator>();
 
   if (error || !job) {
@@ -64,6 +69,70 @@ export default async function JobDetailPage({
       </div>
     );
   }
+
+  /* ================= UNIQUE VIEW SYSTEM ================= */
+
+  const isCreatorViewing = user?.id === job.creator_id;
+
+  if (!isCreatorViewing) {
+
+    // 🔹 CASE 1: Logged-in user (lifetime unique)
+    if (user) {
+      const { data: existingView } = await supabase
+        .from("job_views")
+        .select("id")
+        .eq("job_id", job.id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!existingView) {
+        await supabase.from("job_views").insert({
+          job_id: job.id,
+          user_id: user.id,
+        });
+
+        await supabase
+          .from("jobs")
+          .update({
+            views: job.views ? job.views + 1 : 1,
+          })
+          .eq("id", job.id);
+      }
+    }
+
+    // 🔹 CASE 2: Anonymous user (IP-based)
+    else {
+      const headersList = await headers();
+      const forwarded = headersList.get("x-forwarded-for");
+      const ip =
+        forwarded?.split(",")[0]?.trim() ||
+        headersList.get("x-real-ip") ||
+        "unknown";
+
+      const { data: existingIpView } = await supabase
+        .from("job_ip_views")
+        .select("id")
+        .eq("job_id", job.id)
+        .eq("ip_address", ip)
+        .maybeSingle();
+
+      if (!existingIpView) {
+        await supabase.from("job_ip_views").insert({
+          job_id: job.id,
+          ip_address: ip,
+        });
+
+        await supabase
+          .from("jobs")
+          .update({
+            views: job.views ? job.views + 1 : 1,
+          })
+          .eq("id", job.id);
+      }
+    }
+  }
+
+  /* ======================================================= */
 
   const creator = job.profile?.[0] ?? null;
 

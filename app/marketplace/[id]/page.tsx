@@ -8,13 +8,15 @@ export const dynamic = "force-dynamic";
 async function markSold(formData: FormData) {
   "use server";
 
-  const id = Number(formData.get("id"));
+  const id = formData.get("id") as string; // ✅ UUID string
   const supabase = await createSupabaseServerClient();
+
+  if (!id) return;
 
   await supabase
     .from("marketplace_items")
     .update({ is_sold: true })
-    .eq("id", id);
+    .eq("id", id); // ✅ no Number()
 
   redirect("/marketplace");
 }
@@ -26,14 +28,18 @@ export default async function MarketplaceItemPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+  const { id } = await params; // ✅ UUID string
 
   const supabase = await createSupabaseServerClient();
+
+  if (!id) {
+    notFound();
+  }
 
   const { data: item, error } = await supabase
     .from("marketplace_items")
     .select("*")
-    .eq("id", Number(id))
+    .eq("id", id) // ✅ no Number()
     .eq("is_published", true)
     .single();
 
@@ -42,13 +48,20 @@ export default async function MarketplaceItemPage({
   }
 
   return (
-    <main className="max-w-4xl mx-auto px-6 py-12 space-y-8">
-      <h1 className="text-3xl font-bold">
-        {item.title}
-      </h1>
+    <main className="max-w-4xl mx-auto px-6 py-12 space-y-10">
+      {/* TITLE */}
+      <header className="space-y-3">
+        <h1 className="text-3xl font-bold">
+          {item.title}
+        </h1>
+        <p className="text-gray-500 text-sm">
+          Listed on {new Date(item.created_at).toLocaleDateString()}
+        </p>
+      </header>
 
+      {/* IMAGE */}
       {item.image_url && (
-        <div className="h-72 bg-gray-100 rounded-xl overflow-hidden">
+        <div className="h-80 bg-gray-100 rounded-xl overflow-hidden">
           <img
             src={item.image_url}
             alt={item.title}
@@ -57,24 +70,25 @@ export default async function MarketplaceItemPage({
         </div>
       )}
 
-      <p className="text-xl font-semibold">
+      {/* PRICE */}
+      <div className="text-2xl font-semibold">
         ₹{item.price ?? 0}
-      </p>
+      </div>
 
-      <p className="text-gray-700">
+      {/* DESCRIPTION */}
+      <p className="text-gray-700 whitespace-pre-line">
         {item.description}
       </p>
 
-      {!item.is_sold && (
+      {/* ACTION */}
+      {!item.is_sold ? (
         <form action={markSold}>
           <input type="hidden" name="id" value={item.id} />
           <button className="px-6 py-3 bg-black text-white rounded-md hover:bg-gray-800 transition">
             Buy Item
           </button>
         </form>
-      )}
-
-      {item.is_sold && (
+      ) : (
         <div className="text-red-600 font-medium">
           This item has been sold.
         </div>

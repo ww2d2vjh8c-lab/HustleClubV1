@@ -13,9 +13,32 @@ async function createItem(formData: FormData) {
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
   const price = Number(formData.get("price"));
+  const file = formData.get("image") as File | null;
 
   if (!title) {
     throw new Error("Title is required");
+  }
+
+  let imageUrl: string | null = null;
+
+  // ✅ Upload image if provided
+  if (file && file.size > 0) {
+    const fileName = `${Date.now()}-${file.name}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("marketplace")
+      .upload(fileName, file);
+
+    if (uploadError) {
+      console.log("UPLOAD ERROR:", uploadError);
+      throw new Error("Image upload failed");
+    }
+
+    const { data } = supabase.storage
+      .from("marketplace")
+      .getPublicUrl(fileName);
+
+    imageUrl = data.publicUrl;
   }
 
   const { error } = await supabase
@@ -25,6 +48,7 @@ async function createItem(formData: FormData) {
       description,
       price,
       seller_id: user.id,
+      image_url: imageUrl,
       is_published: false,
       is_sold: false,
     });
@@ -40,65 +64,67 @@ async function createItem(formData: FormData) {
 /* ================= PAGE ================= */
 
 export default async function NewMarketplaceItemPage() {
-  await requireCreator(); // 🔐 Protect route
+  await requireCreator();
 
   return (
     <main className="max-w-3xl mx-auto p-6 space-y-8">
-      <header>
-        <h1 className="text-2xl font-bold">
-          Add Marketplace Item
-        </h1>
-        <p className="text-gray-600 text-sm">
-          Create a new item listing (saved as draft)
-        </p>
-      </header>
+      <h1 className="text-2xl font-bold">
+        Add Marketplace Item
+      </h1>
 
       <form
         action={createItem}
         className="space-y-6"
       >
         <div>
-          <label className="block text-sm font-medium mb-2">
+          <label className="block mb-2 text-sm font-medium">
             Title
           </label>
           <input
             name="title"
             required
             className="w-full border rounded-md px-4 py-2"
-            placeholder="Item title"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">
+          <label className="block mb-2 text-sm font-medium">
             Description
           </label>
           <textarea
             name="description"
             rows={4}
             className="w-full border rounded-md px-4 py-2"
-            placeholder="Describe your item"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">
+          <label className="block mb-2 text-sm font-medium">
             Price (₹)
           </label>
           <input
             name="price"
             type="number"
-            min="0"
-            step="1"
             required
             className="w-full border rounded-md px-4 py-2"
-            placeholder="0"
+          />
+        </div>
+
+        <div>
+          <label className="block mb-2 text-sm font-medium">
+            Item Image
+          </label>
+          <input
+            name="image"
+            type="file"
+            accept="image/*"
+            className="w-full"
           />
         </div>
 
         <button
           type="submit"
-          className="px-6 py-3 bg-black text-white rounded-md hover:bg-gray-800 transition"
+          className="px-6 py-3 bg-black text-white rounded-md"
         >
           Create Item
         </button>
