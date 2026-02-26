@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const links = [
   { href: "/admin/dashboard", label: "Dashboard" },
@@ -16,10 +19,12 @@ const links = [
 ];
 
 export default function AdminSidebar() {
+  const pathname = usePathname();
+
   return (
-    <aside className="w-full md:w-64 bg-white border-r flex flex-col md:min-h-screen">
-      <div className="h-16 flex items-center px-6 font-bold text-lg border-b">
-        Admin Panel
+    <aside className="w-full md:w-72 app-surface md:min-h-screen md:sticky md:top-[76px] md:self-start rounded-b-2xl md:rounded-b-none md:rounded-r-2xl">
+      <div className="h-16 flex items-center px-6 font-semibold text-lg font-[var(--font-display)] border-b border-slate-200/70">
+        Admin Console
       </div>
 
       <nav className="flex-1 px-4 py-4 space-y-1 grid md:block grid-cols-2 gap-1">
@@ -27,7 +32,11 @@ export default function AdminSidebar() {
           <Link
             key={l.href}
             href={l.href}
-            className="block px-3 py-2 rounded-md text-sm hover:bg-gray-100 transition"
+            className={`block px-3 py-2 rounded-lg text-sm transition ${
+              pathname === l.href || pathname.startsWith(`${l.href}/`)
+                ? "bg-slate-900 text-white"
+                : "hover:bg-slate-100 text-slate-700"
+            }`}
           >
             {l.label}
           </Link>

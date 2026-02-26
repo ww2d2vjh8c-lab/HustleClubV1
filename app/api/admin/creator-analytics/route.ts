@@ -12,22 +12,23 @@ export async function GET() {
     return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
 
+  const now = Date.now();
+  const last30d = now - 30 * 24 * 60 * 60 * 1000;
   const total = data.length;
-
-  const approved = data.filter(r => r.status === "approved").length;
-  const rejected = data.filter(r => r.status === "rejected").length;
-  const pending = data.filter(r => r.status === "pending").length;
-
-  const decided = data.filter(r => r.decided_at);
+  const approved = data.filter((request) => request.status === "approved").length;
+  const rejected = data.filter((request) => request.status === "rejected").length;
+  const pending = data.filter((request) => request.status === "pending").length;
+  const created30d = data.filter((request) => new Date(request.created_at).getTime() >= last30d).length;
+  const decided = data.filter((request) => request.decided_at);
 
   const avgReviewHours =
     decided.length === 0
       ? 0
       : Math.round(
-          decided.reduce((sum, r) => {
-            const start = new Date(r.created_at).getTime();
-            const end = new Date(r.decided_at!).getTime();
-            return sum + (end - start);
+          decided.reduce((sum, request) => {
+            const start = new Date(request.created_at).getTime();
+            const end = new Date(request.decided_at as string).getTime();
+            return sum + Math.max(0, end - start);
           }, 0) /
             decided.length /
             36e5
@@ -38,7 +39,8 @@ export async function GET() {
     approved,
     rejected,
     pending,
-    approvalRate: total ? Math.round((approved / total) * 100) : 0,
+    created30d,
+    approvalRate: decided.length ? Math.round((approved / decided.length) * 100) : 0,
     avgReviewHours,
   });
 }

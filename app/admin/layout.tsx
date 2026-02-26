@@ -14,8 +14,8 @@ export default async function AdminLayout({
   const impersonatedUserId = await getImpersonatedUserId();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="md:flex">
+    <div className="min-h-screen">
+      <div className="app-container py-6 md:flex md:items-start md:gap-5">
         <AdminSidebar />
         <div className="flex-1 min-w-0">
           {children}

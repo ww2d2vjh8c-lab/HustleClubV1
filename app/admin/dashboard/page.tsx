@@ -70,31 +70,31 @@ export default async function AdminDashboardPage() {
   ];
 
   return (
-    <main className="p-6 space-y-8">
+    <main className="space-y-8">
       <header className="space-y-2">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-gray-600">
+        <h1 className="text-3xl font-semibold font-[var(--font-display)]">Admin Dashboard</h1>
+        <p className="text-slate-600">
           Live platform overview and moderation shortcuts.
         </p>
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {cards.map((card) => (
-          <div key={card.label} className="rounded-xl border bg-white p-4">
-            <p className="text-xs text-gray-500">{card.label}</p>
-            <p className="mt-1 text-2xl font-bold">{card.value}</p>
+          <div key={card.label} className="app-card rounded-xl p-4">
+            <p className="text-xs text-slate-500">{card.label}</p>
+            <p className="mt-1 text-2xl font-semibold">{card.value}</p>
           </div>
         ))}
       </section>
 
-      <section className="rounded-xl border bg-white p-5 space-y-4">
+      <section className="app-card rounded-xl p-5 space-y-4">
         <h2 className="text-lg font-semibold">Quick Actions</h2>
         <div className="flex flex-wrap gap-2">
           {quickLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm px-3 py-2 rounded border hover:bg-gray-50"
+              className="text-sm px-3 py-2 rounded-full border border-slate-200 hover:bg-slate-50"
             >
               {link.label}
             </Link>

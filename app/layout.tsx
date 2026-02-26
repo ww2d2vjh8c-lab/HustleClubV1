@@ -1,9 +1,20 @@
 import "./globals.css";
 import Navbar from "@/components/navigation/Navbar";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Manrope, Sora } from "next/font/google";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-body",
+});
+
+const sora = Sora({
+  subsets: ["latin"],
+  variable: "--font-display",
+});
 
 export default async function RootLayout({
   children,
@@ -31,10 +42,10 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" className={`${manrope.variable} ${sora.variable}`}>
+      <body className="font-[var(--font-body)] antialiased text-slate-900">
         <Navbar user={user} role={role} />
-        {children}
+        <div className="pb-16">{children}</div>
       </body>
     </html>
   );

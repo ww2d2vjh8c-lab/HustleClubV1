@@ -11,32 +11,47 @@ export const dynamic = "force-dynamic";
 export default async function ProfilePage() {
   const { user } = await requireUser();
   const supabase = await createSupabaseServerClient();
+  const metadataFullName =
+    typeof user.user_metadata?.full_name === "string"
+      ? user.user_metadata.full_name.trim()
+      : "";
 
   let { data: profile } = await supabase
     .from("profiles")
-    .select("username, full_name, bio, avatar_url, role")
+    .select("username, full_name, bio, avatar_url, role, email")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
-  // Safe profile bootstrap (NO redirect loop)
+  // Bootstrap profile if trigger did not insert yet.
   if (!profile) {
     const { error } = await supabase.from("profiles").insert({
       id: user.id,
       role: "user",
+      email: user.email ?? null,
+      full_name: metadataFullName || null,
     });
 
-    if (error) {
+    if (error && error.code !== "23505") {
       console.error("Profile creation failed", error);
       throw new Error("Unable to initialize profile");
     }
 
     const { data: newProfile } = await supabase
       .from("profiles")
-      .select("username, full_name, bio, avatar_url, role")
+      .select("username, full_name, bio, avatar_url, role, email")
       .eq("id", user.id)
       .single();
 
     profile = newProfile!;
+  } else if (!profile.full_name && metadataFullName) {
+    const { data: updatedProfile } = await supabase
+      .from("profiles")
+      .update({ full_name: metadataFullName })
+      .eq("id", user.id)
+      .select("username, full_name, bio, avatar_url, role, email")
+      .single();
+
+    profile = updatedProfile ?? profile;
   }
 
   const { data: creatorRequest } = await supabase
@@ -48,10 +63,10 @@ export default async function ProfilePage() {
     .maybeSingle();
 
   return (
-    <main className="max-w-xl mx-auto p-6 space-y-8">
+    <main className="app-container max-w-3xl py-8 space-y-8">
       <header>
-        <h1 className="text-2xl font-bold">Your Profile</h1>
-        <p className="text-sm text-gray-600 mt-1">
+        <h1 className="text-3xl font-semibold font-[var(--font-display)]">Your Profile</h1>
+        <p className="text-sm text-slate-600 mt-1">
           Complete your profile to unlock jobs, marketplace & courses.
         </p>
       </header>
@@ -63,7 +78,7 @@ export default async function ProfilePage() {
         bio={profile.bio}
       />
 
-      <section className="border rounded-xl p-4 space-y-2 bg-gray-50">
+      <section className="app-card rounded-xl p-5 space-y-2">
         <h2 className="font-semibold">Creator Status</h2>
 
         {profile.role === "creator" && (
@@ -90,26 +105,27 @@ export default async function ProfilePage() {
               </p>
             )}
 
-            <Link href="/creator/apply" className="text-sm text-blue-600">
+            <Link href="/creator/apply" className="text-sm text-sky-700 underline">
               Apply again
             </Link>
           </div>
         )}
 
         {!creatorRequest && profile.role !== "creator" && (
-          <Link href="/creator/apply" className="text-sm text-blue-600">
+          <Link href="/creator/apply" className="text-sm text-sky-700 underline">
             Apply to become a creator
           </Link>
         )}
       </section>
 
-      <section>
+      <section className="app-card rounded-xl p-5">
         <h2 className="font-semibold mb-2">Avatar</h2>
         <AvatarUploader userId={user.id} />
       </section>
 
       <ProfileForm
         userId={user.id}
+        email={profile.email ?? user.email ?? ""}
         initialUsername={profile.username}
         initialFullName={profile.full_name}
         initialBio={profile.bio}

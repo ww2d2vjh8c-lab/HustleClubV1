@@ -2,14 +2,29 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function POST(req: Request) {
-  const { email, password } = await req.json();
+  const { email, password, fullName } = await req.json();
+
+  const normalizedEmail = typeof email === "string" ? email.trim() : "";
+  const normalizedPassword = typeof password === "string" ? password : "";
+  const normalizedFullName = typeof fullName === "string" ? fullName.trim() : "";
+
+  if (!normalizedEmail || !normalizedPassword) {
+    return NextResponse.json(
+      { error: "Email and password are required" },
+      { status: 400 }
+    );
+  }
 
   const supabase = await createSupabaseServerClient();
 
-  // 1️⃣ Create auth user ONLY
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
+  const { data, error } = await supabase.auth.signUp({
+    email: normalizedEmail,
+    password: normalizedPassword,
+    options: {
+      data: {
+        full_name: normalizedFullName || null,
+      },
+    },
   });
 
   if (error) {
@@ -19,8 +34,12 @@ export async function POST(req: Request) {
     );
   }
 
-  // 2️⃣ Do NOT create profile here
-  // Profile is created safely on /profile page (server + authenticated)
+  const needsEmailVerification =
+    !data.session ||
+    Boolean(data.user?.identities && data.user.identities.length === 0);
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({
+    success: true,
+    needsEmailVerification,
+  });
 }
