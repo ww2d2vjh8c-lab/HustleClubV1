@@ -2,6 +2,7 @@
 
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 /* ───────────────── BULK UPDATE CREATOR REQUESTS ───────────────── */
 
@@ -50,4 +51,7 @@ export async function bulkUpdateCreatorRequests(
       decidedAt,
     },
   });
+
+  revalidatePath("/admin/creator-requests");
+  revalidatePath("/admin/dashboard");
 }

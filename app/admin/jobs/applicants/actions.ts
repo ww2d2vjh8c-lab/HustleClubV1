@@ -1,9 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-
-/* ───────────────── CORE ACCEPT LOGIC ───────────────── */
 
 export async function acceptApplication(applicationId: string) {
   const { user } = await requireAdmin();
@@ -11,16 +10,7 @@ export async function acceptApplication(applicationId: string) {
 
   const { data, error } = await supabase
     .from("job_applications")
-    .select(
-      `
-        id,
-        job_id,
-        jobs (
-          created_by,
-          is_open
-        )
-      `
-    )
+    .select("id, job_id")
     .eq("id", applicationId)
     .single();
 
@@ -28,37 +18,35 @@ export async function acceptApplication(applicationId: string) {
     throw new Error("Application not found");
   }
 
-  const job = data.jobs?.[0];
-
-  if (!job || job.created_by !== user.id) {
-    throw new Error("Unauthorized");
-  }
-
-  if (!job.is_open) {
-    throw new Error("Job already closed");
-  }
-
-  /* ✅ ACCEPT SELECTED APPLICATION */
-  await supabase
+  const { error: acceptError } = await supabase
     .from("job_applications")
     .update({ status: "accepted" })
     .eq("id", applicationId);
 
-  /* ❌ REJECT ALL OTHER APPLICATIONS */
+  if (acceptError) throw new Error("Failed to accept application");
+
   await supabase
     .from("job_applications")
     .update({ status: "rejected" })
     .eq("job_id", data.job_id)
     .neq("id", applicationId);
 
-  /* 🔒 CLOSE JOB */
   await supabase
     .from("jobs")
     .update({ is_open: false })
     .eq("id", data.job_id);
-}
 
-/* ───────────────── COMPATIBILITY EXPORT ───────────────── */
+  await supabase.from("audit_logs").insert({
+    actor_id: user.id,
+    action: "admin_application_accepted",
+    target_type: "job_application",
+    target_id: applicationId,
+    metadata: { jobId: data.job_id },
+  });
+
+  revalidatePath("/admin/jobs");
+  revalidatePath("/admin/jobs/applicants");
+}
 
 export async function updateApplicationStatus(
   applicationId: string,
@@ -73,23 +61,29 @@ export async function updateApplicationStatus(
 
   const { data, error } = await supabase
     .from("job_applications")
-    .select(
-      `
-        id,
-        jobs (
-          created_by
-        )
-      `
-    )
+    .select("id, job_id")
     .eq("id", applicationId)
     .single();
 
-  if (error || !data || data.jobs?.[0]?.created_by !== user.id) {
-    throw new Error("Unauthorized");
+  if (error || !data) {
+    throw new Error("Application not found");
   }
 
-  await supabase
+  const { error: updateError } = await supabase
     .from("job_applications")
     .update({ status })
     .eq("id", applicationId);
+
+  if (updateError) throw new Error("Failed to update application status");
+
+  await supabase.from("audit_logs").insert({
+    actor_id: user.id,
+    action: "admin_application_status_updated",
+    target_type: "job_application",
+    target_id: applicationId,
+    metadata: { status, jobId: data.job_id },
+  });
+
+  revalidatePath("/admin/jobs/applicants");
+  revalidatePath("/admin/jobs");
 }

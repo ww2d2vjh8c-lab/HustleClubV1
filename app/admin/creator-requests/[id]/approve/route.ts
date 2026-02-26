@@ -32,16 +32,31 @@ export async function POST(
   }
 
   /* ───── Promote user to creator ───── */
-  await supabase
+  const { error: promoteError } = await supabase
     .from("profiles")
     .update({ role: "creator" })
     .eq("id", data.user_id);
+  if (promoteError) {
+    return NextResponse.json(
+      { error: "Failed to promote user role" },
+      { status: 500 }
+    );
+  }
 
   /* ───── Update request status ───── */
-  await supabase
+  const { error: requestError } = await supabase
     .from("creator_requests")
-    .update({ status: "approved" })
+    .update({
+      status: "approved",
+      decided_at: new Date().toISOString(),
+    })
     .eq("id", id);
+  if (requestError) {
+    return NextResponse.json(
+      { error: "Failed to update request" },
+      { status: 500 }
+    );
+  }
 
   await supabase.from("audit_logs").insert({
     actor_id: user.id,

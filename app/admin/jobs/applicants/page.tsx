@@ -5,68 +5,40 @@ import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
-/* ───────────────── TYPES ───────────────── */
-
 type ApplicationStatus = "pending" | "accepted" | "rejected";
 
-type Application = {
+type ApplicationRow = {
   id: string;
   created_at: string;
-  status: string; // normalize later
+  status: string;
   applicant: {
     username: string | null;
     full_name: string | null;
     avatar_url: string | null;
     bio: string | null;
   } | null;
+  job: {
+    id: number;
+    title: string;
+  }[] | null;
 };
-
-/* ──────────────── HELPERS ──────────────── */
 
 function normalizeStatus(status: string): ApplicationStatus {
   if (status === "accepted" || status === "rejected") return status;
   return "pending";
 }
 
-/* ───────────────── PAGE ───────────────── */
-
 export default async function ApplicantsPage({
   searchParams,
 }: {
-  searchParams: { job?: string };
+  searchParams?: { job?: string; status?: ApplicationStatus | "all" };
 }) {
-  const { user } = await requireAdmin();
+  await requireAdmin();
   const supabase = await createSupabaseServerClient();
+  const jobId = searchParams?.job;
+  const statusFilter = searchParams?.status ?? "all";
 
-  const jobId = searchParams.job;
-
-  /* ───────── VALIDATION ───────── */
-  if (!jobId) {
-    return (
-      <div className="max-w-xl mx-auto p-6 text-red-500">
-        Missing job id.
-      </div>
-    );
-  }
-
-  /* ───── OWNERSHIP CHECK ───── */
-  const { data: job } = await supabase
-    .from("jobs")
-    .select("id, title")
-    .eq("id", jobId)
-    .eq("created_by", user.id)
-    .single();
-
-  if (!job) {
-    return (
-      <div className="max-w-xl mx-auto p-6 text-red-500">
-        You don’t have access to this job.
-      </div>
-    );
-  }
-
-  /* ───── FETCH APPLICATIONS ───── */
-  const { data, error } = await supabase
+  let query = supabase
     .from("job_applications")
     .select(
       `
@@ -78,86 +50,95 @@ export default async function ApplicantsPage({
           full_name,
           avatar_url,
           bio
+        ),
+        job:jobs!inner (
+          id,
+          title
         )
       `
     )
-    .eq("job_id", jobId)
     .order("created_at", { ascending: false })
-    .returns<Application[]>();
+    .limit(200);
+
+  if (jobId) query = query.eq("job_id", jobId);
+  if (statusFilter !== "all") query = query.eq("status", statusFilter);
+
+  const { data, error } = await query.returns<ApplicationRow[]>();
 
   if (error) {
     return (
-      <div className="max-w-xl mx-auto p-6 text-red-500">
-        Failed to load applicants.
-      </div>
+      <main className="app-card rounded-xl p-6">
+        <p className="text-red-600">Failed to load applicants.</p>
+      </main>
     );
   }
 
-  /* ───────────────── UI ───────────────── */
   return (
-    <main className="max-w-4xl mx-auto p-6 space-y-8">
-      <header>
-        <h1 className="text-2xl font-bold">Applicants</h1>
-        <p className="text-sm text-gray-600 mt-1">
-          Applicants for{" "}
-          <span className="font-medium">{job.title}</span>
-        </p>
+    <main className="space-y-6">
+      <header className="space-y-2">
+        <h1 className="text-3xl font-semibold font-[var(--font-display)]">Job Applications</h1>
+        <p className="text-sm text-slate-600">Moderate applications across all jobs.</p>
       </header>
 
+      <form method="get" className="app-card rounded-xl p-4 flex flex-wrap gap-2 items-center">
+        <input
+          name="job"
+          defaultValue={jobId}
+          placeholder="Filter by job id"
+          className="px-3 py-2 min-w-[220px]"
+        />
+        <select name="status" defaultValue={statusFilter} className="px-3 py-2">
+          <option value="all">All statuses</option>
+          <option value="pending">Pending</option>
+          <option value="accepted">Accepted</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <button className="rounded-xl bg-slate-900 text-white px-4 py-2 text-sm font-medium hover:bg-slate-800">
+          Apply filters
+        </button>
+      </form>
+
       {(!data || data.length === 0) && (
-        <p className="text-gray-500">No applications yet.</p>
+        <p className="text-slate-500">No applications found for this filter.</p>
       )}
 
       <section className="space-y-4">
-        {data?.map((a) => (
-          <div
-            key={a.id}
-            className="border rounded-xl p-5 flex gap-4 bg-white"
-          >
-            {/* AVATAR */}
-            <div className="relative w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-              {a.applicant?.avatar_url && (
-                <Image
-                  src={a.applicant.avatar_url}
-                  alt={
-                    a.applicant.full_name ||
-                    a.applicant.username ||
-                    "Applicant avatar"
-                  }
-                  fill
-                  sizes="48px"
-                  className="object-cover"
-                />
-              )}
-            </div>
+        {data?.map((application) => {
+          const status = normalizeStatus(application.status);
+          const job = application.job?.[0];
+          return (
+            <div key={application.id} className="app-card rounded-xl p-5 flex gap-4">
+              <div className="relative w-12 h-12 rounded-full bg-slate-200 overflow-hidden flex-shrink-0">
+                {application.applicant?.avatar_url ? (
+                  <Image
+                    src={application.applicant.avatar_url}
+                    alt={application.applicant.full_name || application.applicant.username || "Applicant avatar"}
+                    fill
+                    sizes="48px"
+                    className="object-cover"
+                  />
+                ) : null}
+              </div>
 
-            {/* INFO */}
-            <div className="flex-1 space-y-1">
-              <p className="font-medium">
-                {a.applicant?.full_name ||
-                  a.applicant?.username ||
-                  "Anonymous"}
-              </p>
-
-              {a.applicant?.bio && (
-                <p className="text-sm text-gray-600">
-                  {a.applicant.bio}
+              <div className="flex-1 space-y-1">
+                <p className="font-medium">
+                  {application.applicant?.full_name || application.applicant?.username || "Anonymous"}
                 </p>
-              )}
+                <p className="text-sm text-slate-600">
+                  Job: {job?.title ?? "Unknown"} ({job?.id ?? "—"})
+                </p>
+                {application.applicant?.bio ? (
+                  <p className="text-sm text-slate-600">{application.applicant.bio}</p>
+                ) : null}
+                <p className="text-xs text-slate-500">
+                  Applied on {new Date(application.created_at).toLocaleString()}
+                </p>
+              </div>
 
-              <p className="text-xs text-gray-500 mt-2">
-                Applied on{" "}
-                {new Date(a.created_at).toLocaleDateString()}
-              </p>
+              <ApplicationActions applicationId={application.id} status={status} />
             </div>
-
-            {/* ACTIONS */}
-            <ApplicationActions
-              applicationId={a.id}
-              status={normalizeStatus(a.status)}
-            />
-          </div>
-        ))}
+          );
+        })}
       </section>
     </main>
   );
