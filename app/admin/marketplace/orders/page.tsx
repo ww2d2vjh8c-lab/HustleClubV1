@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/auth/requireUser";
+import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -13,8 +13,7 @@ type OrderRow = {
 };
 
 export default async function SellerOrdersPage() {
-  // ✅ CORRECT USAGE
-  const { user } = await requireUser();
+  const { user } = await requireAdmin();
   const supabase = await createSupabaseServerClient();
 
   const { data, error } = await supabase

@@ -1,4 +1,4 @@
-import { requireCreator } from "@/lib/auth/requireCreator";
+import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
@@ -12,8 +12,7 @@ type JobRow = {
 };
 
 export default async function EmployerJobsPage() {
-  // 🔐 Creator-only access (NO ARGUMENTS)
-  const { user } = await requireCreator();
+  const { user } = await requireAdmin();
   const supabase = await createSupabaseServerClient();
 
   const { data: jobs, error } = await supabase

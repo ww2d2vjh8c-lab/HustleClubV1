@@ -1,30 +1,35 @@
 import { createSupabaseServerClient } from "./server";
 import { getImpersonatedUserId } from "@/lib/admin/impersonation.actions";
 
+type RequireUserOptions = {
+  ignoreImpersonation?: boolean;
+};
+
 /* ───────────────── USER ───────────────── */
 
-export async function requireUser() {
+export async function requireUser(options: RequireUserOptions = {}) {
   const supabase = await createSupabaseServerClient();
 
   const {
-    data: { user },
+    data: { user: authUser },
     error,
   } = await supabase.auth.getUser();
 
-  if (error || !user) {
+  if (error || !authUser) {
     throw new Error("Unauthorized");
   }
 
-  // 🔁 Impersonation override
   const impersonatedUserId = await getImpersonatedUserId();
-  if (impersonatedUserId) {
-    return {
-      supabase,
-      user: { ...user, id: impersonatedUserId },
-    };
-  }
+  const isImpersonating =
+    !options.ignoreImpersonation &&
+    Boolean(impersonatedUserId) &&
+    impersonatedUserId !== authUser.id;
 
-  return { supabase, user };
+  const user = isImpersonating
+    ? ({ ...authUser, id: impersonatedUserId! } as typeof authUser)
+    : authUser;
+
+  return { supabase, user, authUser, isImpersonating, impersonatedUserId };
 }
 
 /* ───────────────── CREATOR ───────────────── */
@@ -51,17 +56,17 @@ export async function requireCreator() {
 /* ───────────────── ADMIN ───────────────── */
 
 export async function requireAdmin() {
-  const { supabase, user } = await requireUser();
+  const { supabase, authUser } = await requireUser({ ignoreImpersonation: true });
 
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("role")
-    .eq("id", user.id)
+    .eq("id", authUser.id)
     .single();
 
   if (error || profile?.role !== "admin") {
     throw new Error("Admin access required");
   }
 
-  return { supabase, user };
+  return { supabase, user: authUser };
 }

@@ -1,30 +1,14 @@
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireCreator as requireCreatorWithRole } from "@/lib/supabase/auth";
 
 export async function requireCreator() {
-  const supabase = await createSupabaseServerClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) {
-    redirect("/profile");
-  }
-
-  if (profile.role !== "creator" && profile.role !== "admin") {
+  try {
+    const { user, supabase } = await requireCreatorWithRole();
+    return { user, supabase };
+  } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      redirect("/login");
+    }
     redirect("/creator/apply");
   }
-
-  return { supabase, user };
 }

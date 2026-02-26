@@ -1,18 +1,15 @@
 import { redirect } from "next/navigation";
-import { requireUser } from "./requireUser";
+import { requireAdmin as requireSupabaseAdmin } from "@/lib/supabase/auth";
 
 export async function requireAdmin() {
-  const { user, supabase } = await requireUser();
+  try {
+    const { user, supabase } = await requireSupabaseAdmin();
+    return { user, supabase };
+  } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      redirect("/login");
+    }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.role !== "admin") {
     redirect("/");
   }
-
-  return { user, supabase };
 }

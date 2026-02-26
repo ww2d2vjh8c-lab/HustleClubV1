@@ -1,15 +1,16 @@
-import { requireUser } from "@/lib/auth/requireUser";
+import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function PostJobPage() {
-const { user } = await requireUser();
+  await requireAdmin();
 
   async function createJob(formData: FormData) {
     "use server";
 
+    const { user } = await requireAdmin();
     const title = String(formData.get("title"));
     const description = String(formData.get("description"));
 

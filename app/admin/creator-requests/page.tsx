@@ -1,5 +1,4 @@
-import { requireUser } from "@/lib/auth/requireUser";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/supabase/auth";
 import CreatorRequestActions from "@/components/admin/CreatorRequestActions";
 
 export const dynamic = "force-dynamic";
@@ -23,23 +22,7 @@ export default async function CreatorRequestsPage({
 }: {
   searchParams: { status?: Status };
 }) {
-const { user } = await requireUser();
-  const supabase = await createSupabaseServerClient();
-
-  /* ───────── ADMIN GUARD ───────── */
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.role !== "admin") {
-    return (
-      <div className="max-w-xl mx-auto p-6 text-red-500">
-        Admin access only.
-      </div>
-    );
-  }
+  const { supabase } = await requireAdmin();
 
   /* ───────── FILTER ───────── */
   const status: Status = searchParams?.status ?? "pending";

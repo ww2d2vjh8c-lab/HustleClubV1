@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { createOrder } from "@/app/marketplace/[id]/buy/actions";
 
 function getErrorMessage(error: unknown) {
@@ -13,6 +14,7 @@ function getErrorMessage(error: unknown) {
 
 export default function BuyButton({ itemId }: { itemId: string }) {
   const [pending, start] = useTransition();
+  const router = useRouter();
 
   return (
     <button
@@ -21,7 +23,8 @@ export default function BuyButton({ itemId }: { itemId: string }) {
         start(async () => {
           try {
             await createOrder(itemId);
-            alert("Order placed!");
+            router.push("/marketplace/orders");
+            router.refresh();
           } catch (error: unknown) {
             alert(getErrorMessage(error));
           }

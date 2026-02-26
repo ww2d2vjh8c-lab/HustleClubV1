@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireUser } from "@/lib/auth/requireUser";
+import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,7 @@ type JobRow = {
 };
 
 export default async function MyJobsPage() {
-const { user } = await requireUser();
+  const { user } = await requireAdmin();
   const supabase = await createSupabaseServerClient();
 
   const { data: jobs, error } = await supabase

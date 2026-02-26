@@ -1,12 +1,12 @@
 "use server";
 
-import { requireUser } from "@/lib/auth/requireUser";
+import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /* ───────────────── CORE ACCEPT LOGIC ───────────────── */
 
 export async function acceptApplication(applicationId: string) {
-  const { user } = await requireUser(); // ✅ FIX 1
+  const { user } = await requireAdmin();
   const supabase = await createSupabaseServerClient();
 
   const { data, error } = await supabase
@@ -68,7 +68,7 @@ export async function updateApplicationStatus(
     return acceptApplication(applicationId);
   }
 
-  const { user } = await requireUser(); // ✅ FIX 2
+  const { user } = await requireAdmin();
   const supabase = await createSupabaseServerClient();
 
   const { data, error } = await supabase

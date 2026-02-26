@@ -5,7 +5,7 @@ import Image from "next/image";
 export const dynamic = "force-dynamic";
 
 type Item = {
-  id: number;
+  id: string;
   title: string;
   price: number | null;
   image_url: string | null;

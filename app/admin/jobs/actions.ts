@@ -1,10 +1,10 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { requireUser } from "@/lib/auth/requireUser";
+import { requireAdmin } from "@/lib/supabase/auth";
 
 export async function toggleJobStatus(jobId: string) {
-const { user } = await requireUser();
+  const { user } = await requireAdmin();
   const supabase = await createSupabaseServerClient();
 
   // 🔒 Verify ownership + get current status

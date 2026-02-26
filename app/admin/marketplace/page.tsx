@@ -1,11 +1,11 @@
-import { requireCreator } from "@/lib/auth/requireCreator";
+import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminMarketplacePage() {
-  const { user } = await requireCreator();
+  const { user } = await requireAdmin();
   const supabase = await createSupabaseServerClient();
 
   const { data: items, error } = await supabase

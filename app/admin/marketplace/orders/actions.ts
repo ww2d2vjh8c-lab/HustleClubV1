@@ -1,11 +1,10 @@
 "use server";
 
-import { requireUser } from "@/lib/auth/requireUser";
+import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function markOrderShipped(orderId: string) {
-  // ✅ Any logged-in seller can do this
-  const { user } = await requireUser();
+  const { user } = await requireAdmin();
   const supabase = await createSupabaseServerClient();
 
   // 1️⃣ Ownership check

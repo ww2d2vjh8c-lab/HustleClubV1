@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/auth/requireUser";
+import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import ApplicationActions from "@/components/jobs/ApplicationActions";
 import Image from "next/image";
@@ -35,7 +35,7 @@ export default async function ApplicantsPage({
 }: {
   searchParams: { job?: string };
 }) {
-const { user } = await requireUser();
+  const { user } = await requireAdmin();
   const supabase = await createSupabaseServerClient();
 
   const jobId = searchParams.job;

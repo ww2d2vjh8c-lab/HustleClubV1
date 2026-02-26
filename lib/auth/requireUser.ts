@@ -1,19 +1,11 @@
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireUser as requireSupabaseUser } from "@/lib/supabase/auth";
 
 export async function requireUser() {
-  const supabase = await createSupabaseServerClient();
-
-  // ✅ Use getSession instead of getUser
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  const user = session?.user;
-
-  if (!user) {
+  try {
+    const { user, supabase } = await requireSupabaseUser();
+    return { user, supabase };
+  } catch {
     redirect("/login");
   }
-
-  return { user, supabase };
 }

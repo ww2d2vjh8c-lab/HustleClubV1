@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { requireUser } from "@/lib/auth/requireUser";
+import { requireAdmin } from "@/lib/supabase/auth";
 import Image from "next/image";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +20,7 @@ export default async function JobApplicantsPage({
 }: {
   params: { id: string };
 }) {
-const { user } = await requireUser();
+  const { user } = await requireAdmin();
   const supabase = await createSupabaseServerClient();
 
   /* 1️⃣ Verify job ownership */

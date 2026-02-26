@@ -1,28 +1,10 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
+import BuyButton from "@/components/marketplace/BuyButton";
 
 export const dynamic = "force-dynamic";
-
-/* ================= SERVER ACTION ================= */
-
-async function markSold(formData: FormData) {
-  "use server";
-
-  const id = formData.get("id") as string; // ✅ UUID string
-  const supabase = await createSupabaseServerClient();
-
-  if (!id) return;
-
-  await supabase
-    .from("marketplace_items")
-    .update({ is_sold: true })
-    .eq("id", id); // ✅ no Number()
-
-  redirect("/marketplace");
-}
-
-/* ================= PAGE ================= */
 
 export default async function MarketplaceItemPage({
   params,
@@ -32,6 +14,9 @@ export default async function MarketplaceItemPage({
   const { id } = await params; // ✅ UUID string
 
   const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!id) {
     notFound();
@@ -85,12 +70,13 @@ export default async function MarketplaceItemPage({
 
       {/* ACTION */}
       {!item.is_sold ? (
-        <form action={markSold}>
-          <input type="hidden" name="id" value={item.id} />
-          <button className="px-6 py-3 bg-black text-white rounded-md hover:bg-gray-800 transition">
-            Buy Item
-          </button>
-        </form>
+        user ? (
+          <BuyButton itemId={item.id} />
+        ) : (
+          <Link href="/login" className="text-blue-600 font-medium">
+            Login to buy
+          </Link>
+        )
       ) : (
         <div className="text-red-600 font-medium">
           This item has been sold.
