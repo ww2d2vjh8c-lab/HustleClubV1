@@ -36,7 +36,7 @@ export default function ApplicationActions({
     try {
       await updateApplicationStatus(applicationId, nextStatus);
       setCurrentStatus(nextStatus);
-    } catch (err) {
+    } catch {
       setError("Failed to update status");
     } finally {
       setLoading(null);

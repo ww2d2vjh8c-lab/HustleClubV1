@@ -1,11 +1,21 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | {
+      [key: string]: JsonValue;
+    }
+  | JsonValue[];
+
 type LogInput = {
   actorId: string;
   action: string;
   targetType: string;
   targetId?: string;
-  metadata?: Record<string, any>;
+  metadata?: JsonValue;
 };
 
 export async function logAuditEvent({

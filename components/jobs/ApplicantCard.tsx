@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { updateApplicationStatus } from "@/app/admin/jobs/applicants/actions";
+import Image from "next/image";
 
 type Props = {
   applicationId: string;
@@ -32,12 +33,14 @@ export default function ApplicantCard({
 
   return (
     <div className="border rounded-xl p-5 flex gap-4 bg-white">
-      <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
+      <div className="relative w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
         {avatarUrl && (
-          <img
+          <Image
             src={avatarUrl}
-            alt=""
-            className="w-full h-full object-cover"
+            alt={fullName || username || "Applicant avatar"}
+            fill
+            sizes="48px"
+            className="object-cover"
           />
         )}
       </div>

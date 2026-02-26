@@ -29,7 +29,7 @@ export default async function CreatorApplyPage() {
         </p>
       </header>
 
-      <CreatorApplyForm userId={user.id} />
+      <CreatorApplyForm />
     </main>
   );
 }

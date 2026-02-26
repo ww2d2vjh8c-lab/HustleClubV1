@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,10 @@ type EnrolledCourse = {
   description: string | null;
   image_url: string | null;
   created_at: string;
+};
+
+type EnrollmentRow = {
+  course: EnrolledCourse | EnrolledCourse[] | null;
 };
 
 export default async function MyCoursesPage() {
@@ -35,7 +40,8 @@ export default async function MyCoursesPage() {
         created_at
       )
     `)
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .returns<EnrollmentRow[]>();
 
   if (error) {
     return (
@@ -46,7 +52,12 @@ export default async function MyCoursesPage() {
   }
 
   const courses: EnrolledCourse[] =
-    enrollments?.map((e: any) => e.course) ?? [];
+    enrollments?.flatMap((enrollment) => {
+      if (!enrollment.course) return [];
+      return Array.isArray(enrollment.course)
+        ? enrollment.course
+        : [enrollment.course];
+    }) ?? [];
 
   return (
     <main className="max-w-6xl mx-auto px-6 py-12 space-y-10">
@@ -72,11 +83,13 @@ export default async function MyCoursesPage() {
               className="border rounded-xl p-5 bg-white hover:shadow-md transition"
             >
               {course.image_url && (
-                <div className="mb-4 h-40 bg-gray-100 rounded overflow-hidden">
-                  <img
+                <div className="relative mb-4 h-40 bg-gray-100 rounded overflow-hidden">
+                  <Image
                     src={course.image_url}
                     alt={course.title}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover"
                   />
                 </div>
               )}

@@ -13,7 +13,7 @@ export default function ApplicantModal({
   applicant,
   children,
 }: {
-  applicant: Applicant;
+  applicant: Applicant | null;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -36,7 +36,7 @@ export default function ApplicantModal({
 
             <div className="flex items-center gap-4">
               <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gray-200">
-                {applicant.avatar_url && (
+                {applicant?.avatar_url && (
                   <Image
                     src={applicant.avatar_url}
                     alt="Avatar"
@@ -48,10 +48,10 @@ export default function ApplicantModal({
 
               <div>
                 <h2 className="text-lg font-semibold">
-                  {applicant.full_name || "No name"}
+                  {applicant?.full_name || "No name"}
                 </h2>
                 <p className="text-sm text-gray-500">
-                  @{applicant.username || "anonymous"}
+                  @{applicant?.username || "anonymous"}
                 </p>
               </div>
             </div>

@@ -3,6 +3,14 @@
 import { useTransition } from "react";
 import { createOrder } from "@/app/marketplace/[id]/buy/actions";
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Failed to place order";
+}
+
 export default function BuyButton({ itemId }: { itemId: string }) {
   const [pending, start] = useTransition();
 
@@ -14,8 +22,8 @@ export default function BuyButton({ itemId }: { itemId: string }) {
           try {
             await createOrder(itemId);
             alert("Order placed!");
-          } catch (e: any) {
-            alert(e.message);
+          } catch (error: unknown) {
+            alert(getErrorMessage(error));
           }
         })
       }

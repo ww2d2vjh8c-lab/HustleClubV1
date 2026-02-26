@@ -3,12 +3,31 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
+type JobRow = {
+  id: number;
+  title: string;
+  views: number | null;
+};
+
+type GeoViewRow = {
+  country: string | null;
+  job:
+    | {
+        creator_id: string;
+      }
+    | {
+        creator_id: string;
+      }[]
+    | null;
+};
+
 export default async function CreatorAnalyticsPage() {
   const { user } = await requireCreator();
   const supabase = await createSupabaseServerClient();
 
+  const now = new Date();
   const twentyFourHoursAgo = new Date(
-    Date.now() - 24 * 60 * 60 * 1000
+    now.getTime() - 24 * 60 * 60 * 1000
   ).toISOString();
 
   /* ================= COURSES ================= */
@@ -34,7 +53,8 @@ export default async function CreatorAnalyticsPage() {
   const { data: jobs } = await supabase
     .from("jobs")
     .select("id, title, views")
-    .eq("creator_id", user.id);
+    .eq("creator_id", user.id)
+    .returns<JobRow[]>();
 
   const { count: totalApplications } = await supabase
     .from("job_applications")
@@ -95,11 +115,12 @@ export default async function CreatorAnalyticsPage() {
     `
     )
     .eq("job.creator_id", user.id)
-    .limit(1000);
+    .limit(1000)
+    .returns<GeoViewRow[]>();
 
   const countryCounts: Record<string, number> = {};
 
-  geoData?.forEach((row: any) => {
+  geoData?.forEach((row) => {
     const country = row.country || "unknown";
     countryCounts[country] =
       (countryCounts[country] || 0) + 1;
@@ -121,7 +142,7 @@ export default async function CreatorAnalyticsPage() {
       </header>
 
       {/* ================= SUMMARY CARDS ================= */}
-      <section className="grid md:grid-cols-5 gap-6">
+      <section className="grid md:grid-cols-6 gap-6">
         <AnalyticsCard
           title="Total Views"
           value={totalViews}
@@ -135,6 +156,11 @@ export default async function CreatorAnalyticsPage() {
         <AnalyticsCard
           title="Applications"
           value={totalApplications ?? 0}
+        />
+
+        <AnalyticsCard
+          title="Enrollments"
+          value={totalEnrollments ?? 0}
         />
 
         <AnalyticsCard

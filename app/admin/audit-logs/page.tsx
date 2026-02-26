@@ -1,5 +1,4 @@
 import { requireAdmin } from "@/lib/supabase/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +7,7 @@ type LogRow = {
   action: string;
   target_type: string;
   created_at: string;
-  metadata: any;
+  metadata: Record<string, unknown> | null;
   actor: {
     username: string | null;
     full_name: string | null;

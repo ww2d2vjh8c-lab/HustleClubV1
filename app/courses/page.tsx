@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -59,11 +60,13 @@ export default async function CoursesPage() {
               className="border rounded-xl p-5 bg-white hover:shadow-md transition"
             >
               {course.image_url && (
-                <div className="mb-4 h-40 bg-gray-100 rounded overflow-hidden">
-                  <img
+                <div className="relative mb-4 h-40 bg-gray-100 rounded overflow-hidden">
+                  <Image
                     src={course.image_url}
                     alt={course.title}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover"
                   />
                 </div>
               )}

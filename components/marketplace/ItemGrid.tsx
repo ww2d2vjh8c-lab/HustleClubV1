@@ -1,12 +1,5 @@
 import ItemCard from "./ItemCard";
-
-export type MarketplaceItem = {
-  id: string;
-  title: string;
-  price: number;
-  image_url: string | null;
-  seller: any; // 👈 intentionally flexible (Supabase relation)
-};
+import type { MarketplaceItem } from "./types";
 
 export default function ItemGrid({
   items,

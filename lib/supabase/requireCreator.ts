@@ -8,19 +8,15 @@ export async function requireCreator() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  console.log("USER:", user);
-
   if (!user) {
     redirect("/login");
   }
 
-  const { data: profile, error } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();
-
-  console.log("PROFILE:", profile, "ERROR:", error);
 
   if (!profile) {
     redirect("/profile");

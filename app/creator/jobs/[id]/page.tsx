@@ -3,26 +3,52 @@ import { redirect, notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
+type JobRow = {
+  id: number;
+  title: string;
+  description: string | null;
+  budget: number | null;
+  is_open: boolean;
+};
+
+function getJobId(formData: FormData) {
+  const id = Number(formData.get("id"));
+  if (Number.isNaN(id)) {
+    throw new Error("Invalid job id");
+  }
+
+  return id;
+}
+
 /* ================= SERVER ACTIONS ================= */
 
 async function updateJob(formData: FormData) {
   "use server";
 
-  const { supabase } = await requireCreator();
+  const { user, supabase } = await requireCreator();
 
-  const id = formData.get("id") as string;
+  const id = getJobId(formData);
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
   const budget = Number(formData.get("budget"));
 
-  await supabase
+  if (!title.trim() || !description.trim()) {
+    throw new Error("Title and description are required");
+  }
+
+  const { error } = await supabase
     .from("jobs")
     .update({
       title,
       description,
       budget,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("creator_id", user.id);
+
+  if (error) {
+    throw new Error("Failed to update job");
+  }
 
   redirect(`/creator/jobs/${id}`);
 }
@@ -30,14 +56,19 @@ async function updateJob(formData: FormData) {
 async function toggleJob(formData: FormData) {
   "use server";
 
-  const { supabase } = await requireCreator();
-  const id = formData.get("id") as string;
+  const { user, supabase } = await requireCreator();
+  const id = getJobId(formData);
   const isOpen = formData.get("is_open") === "true";
 
-  await supabase
+  const { error } = await supabase
     .from("jobs")
     .update({ is_open: !isOpen })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("creator_id", user.id);
+
+  if (error) {
+    throw new Error("Failed to update job status");
+  }
 
   redirect(`/creator/jobs/${id}`);
 }
@@ -45,13 +76,18 @@ async function toggleJob(formData: FormData) {
 async function deleteJob(formData: FormData) {
   "use server";
 
-  const { supabase } = await requireCreator();
-  const id = formData.get("id") as string;
+  const { user, supabase } = await requireCreator();
+  const id = getJobId(formData);
 
-  await supabase
+  const { error } = await supabase
     .from("jobs")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("creator_id", user.id);
+
+  if (error) {
+    throw new Error("Failed to delete job");
+  }
 
   redirect("/creator/dashboard");
 }
@@ -64,15 +100,20 @@ export default async function ManageJobPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const jobId = Number(id);
+
+  if (Number.isNaN(jobId)) {
+    notFound();
+  }
 
   const { user, supabase } = await requireCreator();
 
   const { data: job } = await supabase
     .from("jobs")
-    .select("*")
-    .eq("id", id)
+    .select("id, title, description, budget, is_open")
+    .eq("id", jobId)
     .eq("creator_id", user.id)
-    .single();
+    .single<JobRow>();
 
   if (!job) notFound();
 
@@ -100,7 +141,7 @@ export default async function ManageJobPage({
           <label className="block text-sm mb-2">Description</label>
           <textarea
             name="description"
-            defaultValue={job.description}
+            defaultValue={job.description ?? ""}
             rows={4}
             className="w-full border px-4 py-2 rounded-md"
           />
@@ -126,7 +167,11 @@ export default async function ManageJobPage({
 
         <form action={toggleJob}>
           <input type="hidden" name="id" value={job.id} />
-          <input type="hidden" name="is_open" value={job.is_open} />
+          <input
+            type="hidden"
+            name="is_open"
+            value={job.is_open ? "true" : "false"}
+          />
 
           <button className="px-4 py-2 bg-yellow-500 text-white rounded-md">
             {job.is_open ? "Close Job" : "Reopen Job"}

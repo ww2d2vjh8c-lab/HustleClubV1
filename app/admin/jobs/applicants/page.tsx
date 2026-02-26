@@ -1,6 +1,7 @@
 import { requireUser } from "@/lib/auth/requireUser";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import ApplicationActions from "@/components/jobs/ApplicationActions";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -114,12 +115,18 @@ const { user } = await requireUser();
             className="border rounded-xl p-5 flex gap-4 bg-white"
           >
             {/* AVATAR */}
-            <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+            <div className="relative w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
               {a.applicant?.avatar_url && (
-                <img
+                <Image
                   src={a.applicant.avatar_url}
-                  alt=""
-                  className="w-full h-full object-cover"
+                  alt={
+                    a.applicant.full_name ||
+                    a.applicant.username ||
+                    "Applicant avatar"
+                  }
+                  fill
+                  sizes="48px"
+                  className="object-cover"
                 />
               )}
             </div>

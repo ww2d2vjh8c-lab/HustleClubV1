@@ -1,12 +1,21 @@
-export default function SellerCard({ seller }: { seller: any }) {
+import type { MarketplaceSeller } from "./types";
+import Image from "next/image";
+
+export default function SellerCard({
+  seller,
+}: {
+  seller: MarketplaceSeller;
+}) {
   return (
     <div className="border rounded-xl p-4 flex gap-4 items-start">
-      <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
+      <div className="relative w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
         {seller.avatar_url && (
-          <img
+          <Image
             src={seller.avatar_url}
-            alt=""
-            className="w-full h-full object-cover"
+            alt={seller.full_name || seller.username || "Seller avatar"}
+            fill
+            sizes="48px"
+            className="object-cover"
           />
         )}
       </div>

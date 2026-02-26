@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -69,11 +70,13 @@ export default async function LearnPage({
       </header>
 
       {course.image_url && (
-        <div className="w-full h-64 bg-gray-100 rounded-xl overflow-hidden">
-          <img
+        <div className="relative w-full h-64 bg-gray-100 rounded-xl overflow-hidden">
+          <Image
             src={course.image_url}
             alt={course.title}
-            className="w-full h-full object-cover"
+            fill
+            sizes="(max-width: 768px) 100vw, 896px"
+            className="object-cover"
           />
         </div>
       )}

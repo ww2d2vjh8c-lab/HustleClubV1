@@ -1,5 +1,4 @@
 import { requireCreator } from "@/lib/supabase/requireCreator";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -7,16 +6,14 @@ export const dynamic = "force-dynamic";
 async function createCourse(formData: FormData) {
   "use server";
 
-  const supabase = await createSupabaseServerClient();
+  const { user, supabase } = await requireCreator();
 
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
+  if (!title.trim()) {
+    throw new Error("Course title is required");
+  }
 
   const { error } = await supabase.from("courses").insert({
     title,

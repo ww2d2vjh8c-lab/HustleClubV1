@@ -4,12 +4,19 @@ import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
+type ItemUpdatePayload = {
+  title: string;
+  description: string;
+  price: number;
+  image_url?: string;
+};
+
 /* ================= SERVER ACTIONS ================= */
 
 async function updateItem(formData: FormData) {
   "use server";
 
-  const { supabase } = await requireCreator();
+  const { user, supabase } = await requireCreator();
 
   const id = formData.get("id") as string;
   const title = formData.get("title") as string;
@@ -39,7 +46,7 @@ async function updateItem(formData: FormData) {
     imageUrl = data.publicUrl;
   }
 
-  const updatePayload: any = {
+  const updatePayload: ItemUpdatePayload = {
     title,
     description,
     price,
@@ -52,7 +59,8 @@ async function updateItem(formData: FormData) {
   const { error } = await supabase
     .from("marketplace_items")
     .update(updatePayload)
-    .eq("id", id);
+    .eq("id", id)
+    .eq("seller_id", user.id);
 
   if (error) {
     console.log("UPDATE ERROR:", error);
@@ -65,65 +73,90 @@ async function updateItem(formData: FormData) {
 async function removeImage(formData: FormData) {
   "use server";
 
-  const { supabase } = await requireCreator();
+  const { user, supabase } = await requireCreator();
   const id = formData.get("id") as string;
 
-  await supabase
+  const { error } = await supabase
     .from("marketplace_items")
     .update({ image_url: null })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("seller_id", user.id);
+
+  if (error) {
+    throw new Error("Failed to remove image");
+  }
 
   redirect(`/creator/marketplace/${id}`);
 }
 
 async function publishItem(formData: FormData) {
   "use server";
-  const { supabase } = await requireCreator();
+  const { user, supabase } = await requireCreator();
   const id = formData.get("id") as string;
 
-  await supabase
+  const { error } = await supabase
     .from("marketplace_items")
     .update({ is_published: true })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("seller_id", user.id);
+
+  if (error) {
+    throw new Error("Failed to publish item");
+  }
 
   redirect(`/creator/marketplace/${id}`);
 }
 
 async function unpublishItem(formData: FormData) {
   "use server";
-  const { supabase } = await requireCreator();
+  const { user, supabase } = await requireCreator();
   const id = formData.get("id") as string;
 
-  await supabase
+  const { error } = await supabase
     .from("marketplace_items")
     .update({ is_published: false })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("seller_id", user.id);
+
+  if (error) {
+    throw new Error("Failed to unpublish item");
+  }
 
   redirect(`/creator/marketplace/${id}`);
 }
 
 async function markSold(formData: FormData) {
   "use server";
-  const { supabase } = await requireCreator();
+  const { user, supabase } = await requireCreator();
   const id = formData.get("id") as string;
 
-  await supabase
+  const { error } = await supabase
     .from("marketplace_items")
     .update({ is_sold: true })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("seller_id", user.id);
+
+  if (error) {
+    throw new Error("Failed to mark item as sold");
+  }
 
   redirect(`/creator/marketplace/${id}`);
 }
 
 async function deleteItem(formData: FormData) {
   "use server";
-  const { supabase } = await requireCreator();
+  const { user, supabase } = await requireCreator();
   const id = formData.get("id") as string;
 
-  await supabase
+  const { error } = await supabase
     .from("marketplace_items")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("seller_id", user.id);
+
+  if (error) {
+    throw new Error("Failed to delete item");
+  }
 
   redirect("/creator/marketplace");
 }

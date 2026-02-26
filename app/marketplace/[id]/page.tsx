@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -61,11 +62,13 @@ export default async function MarketplaceItemPage({
 
       {/* IMAGE */}
       {item.image_url && (
-        <div className="h-80 bg-gray-100 rounded-xl overflow-hidden">
-          <img
+        <div className="relative h-80 bg-gray-100 rounded-xl overflow-hidden">
+          <Image
             src={item.image_url}
             alt={item.title}
-            className="w-full h-full object-cover"
+            fill
+            sizes="(max-width: 768px) 100vw, 896px"
+            className="object-cover"
           />
         </div>
       )}

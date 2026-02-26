@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 type ProfileHoverCardProps = {
   username: string | null;
   fullName: string | null;
@@ -13,12 +15,14 @@ export default function ProfileHoverCard({
 }: ProfileHoverCardProps) {
   return (
     <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
+      <div className="relative w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
         {avatarUrl && (
-          <img
+          <Image
             src={avatarUrl}
-            alt=""
-            className="w-full h-full object-cover"
+            alt={fullName || username || "Profile avatar"}
+            fill
+            sizes="40px"
+            className="object-cover"
           />
         )}
       </div>

@@ -1,35 +1,38 @@
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireCreator } from "@/lib/supabase/requireCreator";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewJobPage() {
-  const { user } = await requireCreator();
-  const supabase = await createSupabaseServerClient();
+  await requireCreator();
 
   async function createJob(formData: FormData) {
     "use server";
+
+    const { user, supabase } = await requireCreator();
 
     const title = formData.get("title") as string;
     const description = formData.get("description") as string;
     const budget = Number(formData.get("budget"));
     const type = formData.get("type") as string;
 
-    const supabase = await createSupabaseServerClient();
+    if (!title.trim() || !description.trim()) {
+      throw new Error("Title and description are required");
+    }
 
     const { error } = await supabase.from("jobs").insert({
       creator_id: user.id,
+      created_by: user.id,
       title,
       description,
       budget,
       type,
     });
 
-   if (error) {
-  console.log("CREATE JOB ERROR:", error);
-  throw new Error(error.message);
-}
+    if (error) {
+      console.log("CREATE JOB ERROR:", error);
+      throw new Error(error.message);
+    }
 
     redirect("/creator/dashboard");
   }

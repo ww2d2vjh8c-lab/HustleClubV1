@@ -2,11 +2,7 @@
 
 import { useState } from "react";
 
-type Props = {
-  userId: string;
-};
-
-export default function CreatorApplyForm({ userId }: Props) {
+export default function CreatorApplyForm() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -20,7 +16,7 @@ export default function CreatorApplyForm({ userId }: Props) {
     setError(null);
 
     try {
-      const res = await fetch("/creator/apply", {
+      const res = await fetch("/api/creator/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),

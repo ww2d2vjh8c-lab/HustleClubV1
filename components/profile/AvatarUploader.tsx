@@ -8,6 +8,23 @@ type AvatarUploaderProps = {
   userId: string;
 };
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+
+  return "Avatar upload failed";
+}
+
 export default function AvatarUploader({ userId }: AvatarUploaderProps) {
   const supabase = createSupabaseClient();
   const [uploading, setUploading] = useState(false);
@@ -36,8 +53,8 @@ export default function AvatarUploader({ userId }: AvatarUploaderProps) {
       if (updateError) throw updateError;
 
       window.location.reload();
-    } catch (err: any) {
-      setError(err.message ?? "Avatar upload failed");
+    } catch (error: unknown) {
+      setError(getErrorMessage(error));
     } finally {
       setUploading(false);
     }

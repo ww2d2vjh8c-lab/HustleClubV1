@@ -1,27 +1,60 @@
 import { requireCreator } from "@/lib/supabase/requireCreator";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import ApplicantModal from "@/components/applications/ApplicantModal";
 
 export const dynamic = "force-dynamic";
 
+type ApplicationStatus = "pending" | "accepted" | "rejected";
+
+type Job = {
+  id: number;
+  title: string;
+  is_open: boolean;
+};
+
+type Applicant = {
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+};
+
+type JobApplication = {
+  id: string;
+  status: ApplicationStatus;
+  created_at: string;
+  applicant: Applicant | null;
+};
+
 /* ================= SERVER ACTION ================= */
 
 async function updateStatus(
   applicationId: string,
-  newStatus: string,
+  newStatus: Exclude<ApplicationStatus, "pending">,
   jobId: string
 ) {
   "use server";
 
-  const supabase = await createSupabaseServerClient();
+  const { user, supabase } = await requireCreator();
+
+  const { data: job } = await supabase
+    .from("jobs")
+    .select("id")
+    .eq("id", Number(jobId))
+    .eq("creator_id", user.id)
+    .single<{ id: number }>();
+
+  if (!job) {
+    throw new Error("Unauthorized");
+  }
 
   // 1️⃣ Update selected application
   const { error } = await supabase
     .from("job_applications")
     .update({ status: newStatus })
-    .eq("id", applicationId);
+    .eq("id", applicationId)
+    .eq("job_id", Number(jobId));
 
   if (error) {
     console.log("STATUS UPDATE ERROR:", error);
@@ -60,18 +93,12 @@ export default async function ApplicationsPage({
   const { user, supabase } = await requireCreator();
 
   /* Verify job ownership */
-  type Job = {
-  id: number;
-  title: string;
-  is_open: boolean;
-};
-
-const { data: job } = await supabase
-  .from("jobs")
-  .select("id, title, is_open")
-  .eq("id", Number(id))
-  .eq("creator_id", user.id)
-  .single<Job>();
+  const { data: job } = await supabase
+    .from("jobs")
+    .select("id, title, is_open")
+    .eq("id", Number(id))
+    .eq("creator_id", user.id)
+    .single<Job>();
 
   if (!job) {
     redirect("/creator/dashboard");
@@ -92,7 +119,8 @@ const { data: job } = await supabase
       )
     `)
     .eq("job_id", Number(id))
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .returns<JobApplication[]>();
 
   if (error) {
     console.log("APPLICATION LOAD ERROR:", error);
@@ -113,7 +141,7 @@ const { data: job } = await supabase
         <p className="text-gray-500">No applications yet.</p>
       ) : (
         <section className="space-y-4">
-          {applications.map((app: any) => {
+          {applications.map((app) => {
             const statusStyles =
               app.status === "accepted"
                 ? "bg-green-100 text-green-700"

@@ -71,6 +71,23 @@ export async function updateApplicationStatus(
   const { user } = await requireUser(); // ✅ FIX 2
   const supabase = await createSupabaseServerClient();
 
+  const { data, error } = await supabase
+    .from("job_applications")
+    .select(
+      `
+        id,
+        jobs (
+          created_by
+        )
+      `
+    )
+    .eq("id", applicationId)
+    .single();
+
+  if (error || !data || data.jobs?.[0]?.created_by !== user.id) {
+    throw new Error("Unauthorized");
+  }
+
   await supabase
     .from("job_applications")
     .update({ status })

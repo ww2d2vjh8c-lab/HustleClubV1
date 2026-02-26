@@ -4,13 +4,27 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/client";
 
-export default function EditItemForm({ item }: { item: any }) {
+type EditableMarketplaceItem = {
+  id: string;
+  title: string;
+  description: string | null;
+  price: number | null;
+  is_published: boolean;
+};
+
+export default function EditItemForm({
+  item,
+}: {
+  item: EditableMarketplaceItem;
+}) {
   const supabase = createSupabaseClient();
   const router = useRouter();
 
   const [title, setTitle] = useState(item.title);
-  const [description, setDescription] = useState(item.description);
-  const [price, setPrice] = useState(item.price);
+  const [description, setDescription] = useState(
+    item.description ?? ""
+  );
+  const [price, setPrice] = useState<number>(item.price ?? 0);
   const [published, setPublished] = useState(item.is_published);
   const [loading, setLoading] = useState(false);
 
@@ -61,7 +75,7 @@ export default function EditItemForm({ item }: { item: any }) {
       <input
         type="number"
         value={price}
-        onChange={(e) => setPrice(e.target.value)}
+        onChange={(e) => setPrice(Number(e.target.value))}
         className="w-full border rounded px-3 py-2"
       />
 

@@ -28,10 +28,20 @@ export default async function CreatorCoursesPage() {
     );
   }
 
+  const publishedCount =
+    courses?.filter((course) => course.status === "published")
+      .length ?? 0;
+  const draftCount = (courses?.length ?? 0) - publishedCount;
+
   return (
     <main className="max-w-5xl mx-auto p-6 space-y-6">
       <header className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Your Courses</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Your Courses</h1>
+          <p className="text-sm text-gray-600">
+            {publishedCount} published · {draftCount} draft
+          </p>
+        </div>
 
         <Link
           href="/creator/courses/new"
@@ -61,7 +71,7 @@ export default async function CreatorCoursesPage() {
               </div>
 
               <Link
-                href={`/creator/courses/${course.id}/edit`}
+                href={`/creator/courses/${course.id}`}
                 className="text-sm underline"
               >
                 Manage

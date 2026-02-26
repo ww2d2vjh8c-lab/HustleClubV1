@@ -1,5 +1,6 @@
 import Link from "next/link";
 import StatusBadge from "@/components/ui/StatusBadge";
+import Image from "next/image";
 import {
   publishItem,
   unpublishItem,
@@ -24,9 +25,12 @@ export default function MarketplaceCard({
   return (
     <div className="border rounded-xl overflow-hidden bg-white hover:shadow-sm transition">
       {imageUrl ? (
-        <img
+        <Image
           src={imageUrl}
           alt={title}
+          width={600}
+          height={176}
+          sizes="(max-width: 640px) 100vw, 50vw"
           className="h-44 w-full object-cover"
         />
       ) : (

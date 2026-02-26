@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -105,11 +106,13 @@ export default async function CourseDetailPage({
     <main className="max-w-4xl mx-auto px-6 py-12 space-y-8">
       {/* IMAGE */}
       {course.image_url && (
-        <div className="w-full h-72 bg-gray-100 rounded-xl overflow-hidden">
-          <img
+        <div className="relative w-full h-72 bg-gray-100 rounded-xl overflow-hidden">
+          <Image
             src={course.image_url}
             alt={course.title}
-            className="w-full h-full object-cover"
+            fill
+            sizes="(max-width: 768px) 100vw, 896px"
+            className="object-cover"
           />
         </div>
       )}

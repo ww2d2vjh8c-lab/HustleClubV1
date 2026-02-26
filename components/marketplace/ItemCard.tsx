@@ -1,8 +1,10 @@
 import Link from "next/link";
+import type { MarketplaceItem, MarketplaceSeller } from "./types";
+import Image from "next/image";
 
-export default function ItemCard({ item }: { item: any }) {
+export default function ItemCard({ item }: { item: MarketplaceItem }) {
   // 🔑 Normalize seller (array → object)
-  const seller = Array.isArray(item.seller)
+  const seller: MarketplaceSeller | null = Array.isArray(item.seller)
     ? item.seller[0]
     : item.seller;
 
@@ -13,9 +15,12 @@ export default function ItemCard({ item }: { item: any }) {
     >
       <div className="aspect-square bg-gray-100">
         {item.image_url && (
-          <img
+          <Image
             src={item.image_url}
-            alt=""
+            alt={item.title}
+            width={400}
+            height={400}
+            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="w-full h-full object-cover"
           />
         )}
@@ -27,7 +32,7 @@ export default function ItemCard({ item }: { item: any }) {
         </p>
 
         <p className="text-sm text-gray-600">
-          ₹{item.price}
+          ₹{item.price ?? 0}
         </p>
 
         {seller && (

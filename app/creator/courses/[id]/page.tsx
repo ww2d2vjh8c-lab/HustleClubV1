@@ -1,9 +1,16 @@
 import { requireCreator } from "@/lib/supabase/requireCreator";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 
 export const dynamic = "force-dynamic";
+
+type CourseUpdatePayload = {
+  title: string;
+  description: string;
+  instructor: string;
+  price: number;
+  image_url?: string;
+};
 
 /* ================= SERVER ACTIONS ================= */
 
@@ -45,7 +52,7 @@ async function updateCourse(formData: FormData) {
     imageUrl = data.publicUrl;
   }
 
-  const updatePayload: any = {
+  const updatePayload: CourseUpdatePayload = {
     title,
     description,
     instructor,

@@ -4,7 +4,7 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 type ItemRow = {
-  id: number;
+  id: string;
   title: string;
   price: number | null;
   is_published: boolean;
@@ -51,12 +51,20 @@ export default async function CreatorMarketplacePage() {
           </p>
         </div>
 
-        <Link
-          href="/creator/marketplace/new"
-          className="px-4 py-2 bg-black text-white rounded-md text-sm hover:bg-gray-800 transition"
-        >
-          Add Item
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/creator/marketplace/orders"
+            className="px-4 py-2 border rounded-md text-sm"
+          >
+            Orders
+          </Link>
+          <Link
+            href="/creator/marketplace/new"
+            className="px-4 py-2 bg-black text-white rounded-md text-sm hover:bg-gray-800 transition"
+          >
+            Add Item
+          </Link>
+        </div>
       </header>
 
       {/* EMPTY STATE */}
