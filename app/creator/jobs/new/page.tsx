@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { requireCreator } from "@/lib/supabase/requireCreator";
+import { buildJobDescription, textareaToList } from "@/lib/content/richContent";
 
 export const dynamic = "force-dynamic";
 
@@ -12,20 +13,34 @@ export default async function NewJobPage() {
     const { user, supabase } = await requireCreator();
 
     const title = formData.get("title") as string;
-    const description = formData.get("description") as string;
+    const overview = formData.get("overview") as string;
     const budget = Number(formData.get("budget"));
     const type = formData.get("type") as string;
+    const responsibilities = textareaToList(String(formData.get("responsibilities") ?? ""));
+    const requirements = textareaToList(String(formData.get("requirements") ?? ""));
+    const deliverables = textareaToList(String(formData.get("deliverables") ?? ""));
+    const timeline = String(formData.get("timeline") ?? "");
+    const idealCandidate = String(formData.get("idealCandidate") ?? "");
 
-    if (!title.trim() || !description.trim()) {
-      throw new Error("Title and description are required");
+    if (!title.trim() || !overview.trim()) {
+      throw new Error("Title and overview are required");
     }
+
+    const description = buildJobDescription({
+      overview,
+      responsibilities,
+      requirements,
+      deliverables,
+      timeline,
+      idealCandidate,
+    });
 
     const { error } = await supabase.from("jobs").insert({
       creator_id: user.id,
       created_by: user.id,
       title,
       description,
-      budget,
+      budget: Number.isNaN(budget) ? 0 : budget,
       type,
     });
 
@@ -56,14 +71,48 @@ export default async function NewJobPage() {
 
         <div>
           <label className="block text-sm font-medium mb-1">
-            Description
+            Job Overview
           </label>
           <textarea
-            name="description"
+            name="overview"
             required
-            rows={5}
+            rows={4}
             className="w-full border rounded-lg px-3 py-2"
-            placeholder="Explain the job requirements..."
+            placeholder="Explain what this job is about and what success looks like..."
+          />
+        </div>
+
+        <textarea
+          name="responsibilities"
+          rows={4}
+          className="w-full border rounded-lg px-3 py-2"
+          placeholder="Responsibilities (one point per line)"
+        />
+
+        <textarea
+          name="requirements"
+          rows={4}
+          className="w-full border rounded-lg px-3 py-2"
+          placeholder="Requirements/skills (one point per line)"
+        />
+
+        <textarea
+          name="deliverables"
+          rows={3}
+          className="w-full border rounded-lg px-3 py-2"
+          placeholder="Expected deliverables (one point per line)"
+        />
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <input
+            name="timeline"
+            placeholder="Timeline (e.g. 7 days, ongoing)"
+            className="w-full border rounded-lg px-3 py-2"
+          />
+          <input
+            name="idealCandidate"
+            placeholder="Ideal candidate profile"
+            className="w-full border rounded-lg px-3 py-2"
           />
         </div>
 

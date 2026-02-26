@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import Image from "next/image";
+import { parseMarketplaceDescription } from "@/lib/content/richContent";
 
 export const dynamic = "force-dynamic";
 
@@ -9,25 +10,51 @@ type Item = {
   title: string;
   price: number | null;
   image_url: string | null;
+  description: string | null;
   created_at: string;
 };
 
-export default async function MarketplacePage() {
-  const supabase = await createSupabaseServerClient();
+type MarketplacePageProps = {
+  searchParams?: {
+    q?: string;
+    sort?: string;
+  };
+};
 
-  const { data: items, error } = await supabase
+export default async function MarketplacePage({ searchParams }: MarketplacePageProps) {
+  const supabase = await createSupabaseServerClient();
+  const q = searchParams?.q?.trim() ?? "";
+  const sort = searchParams?.sort ?? "newest";
+
+  let query = supabase
     .from("marketplace_items")
     .select(`
       id,
       title,
       price,
       image_url,
+      description,
       created_at
     `)
     .eq("is_published", true)
-    .eq("is_sold", false)
-    .order("created_at", { ascending: false })
-    .returns<Item[]>();
+    .eq("is_sold", false);
+
+  if (q) {
+    const safeQ = q.replace(/[%,"']/g, " ").trim();
+    if (safeQ) {
+      query = query.or(`title.ilike.%${safeQ}%,description.ilike.%${safeQ}%`);
+    }
+  }
+
+  if (sort === "price_low") {
+    query = query.order("price", { ascending: true });
+  } else if (sort === "price_high") {
+    query = query.order("price", { ascending: false });
+  } else {
+    query = query.order("created_at", { ascending: false });
+  }
+
+  const { data: items, error } = await query.returns<Item[]>();
 
   if (error) {
     console.log("MARKETPLACE ERROR:", error);
@@ -47,6 +74,21 @@ export default async function MarketplacePage() {
           Discover curated items from our community
         </p>
       </header>
+
+      <form className="grid gap-3 md:grid-cols-[1fr_200px_120px]">
+        <input
+          name="q"
+          defaultValue={q}
+          placeholder="Search products, keywords..."
+          className="w-full border rounded-lg px-3 py-2"
+        />
+        <select name="sort" defaultValue={sort} className="w-full border rounded-lg px-3 py-2">
+          <option value="newest">Newest</option>
+          <option value="price_low">Price: Low to High</option>
+          <option value="price_high">Price: High to Low</option>
+        </select>
+        <button className="rounded-lg bg-black text-white px-4 py-2">Search</button>
+      </form>
 
       {/* EMPTY STATE */}
       {(!items || items.length === 0) && (
@@ -89,9 +131,15 @@ export default async function MarketplacePage() {
                 {item.title}
               </h2>
 
+              <p className="text-sm text-gray-500 line-clamp-2">
+                {parseMarketplaceDescription(item.description).highlights || "Verified community listing"}
+              </p>
+
               <p className="text-sm text-gray-600">
                 ₹{item.price ? item.price.toLocaleString() : "0"}
               </p>
+
+              <p className="text-sm font-medium">View product →</p>
             </div>
           </Link>
         ))}

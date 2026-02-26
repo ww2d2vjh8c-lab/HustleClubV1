@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isProfileComplete } from "@/lib/profile/isProfileComplete";
 import ProfileHoverCard from "@/components/profile/ProfileHoverCard";
 import ApplyButton from "@/components/jobs/ApplyButton";
+import { parseJobDescription } from "@/lib/content/richContent";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,8 @@ type JobRow = {
   created_at: string;
   is_open: boolean;
   creator_id: string;
+  budget: number | null;
+  type: string | null;
 };
 
 type ProfileRow = {
@@ -23,7 +26,14 @@ type ProfileRow = {
   bio: string | null;
 };
 
-export default async function JobsPage() {
+type JobsPageProps = {
+  searchParams?: {
+    q?: string;
+    type?: string;
+  };
+};
+
+export default async function JobsPage({ searchParams }: JobsPageProps) {
   const supabase = await createSupabaseServerClient();
 
   const {
@@ -33,10 +43,12 @@ export default async function JobsPage() {
   const profileComplete = user
     ? await isProfileComplete(user.id)
     : false;
+  const q = searchParams?.q?.trim() ?? "";
+  const type = searchParams?.type ?? "all";
 
   /* ================= FETCH JOBS ================= */
 
-  const { data: jobs, error } = await supabase
+  let jobsQuery = supabase
     .from("jobs")
     .select(`
       id,
@@ -44,9 +56,26 @@ export default async function JobsPage() {
       description,
       created_at,
       is_open,
-      creator_id
+      creator_id,
+      budget,
+      type
     `)
-    .eq("is_open", true)
+    .eq("is_open", true);
+
+  if (q) {
+    const safeQ = q.replace(/[%,"']/g, " ").trim();
+    if (safeQ) {
+      jobsQuery = jobsQuery.or(
+        `title.ilike.%${safeQ}%,description.ilike.%${safeQ}%`
+      );
+    }
+  }
+
+  if (type !== "all") {
+    jobsQuery = jobsQuery.eq("type", type);
+  }
+
+  const { data: jobs, error } = await jobsQuery
     .order("created_at", { ascending: false })
     .returns<JobRow[]>();
 
@@ -85,17 +114,36 @@ export default async function JobsPage() {
 
   return (
     <main className="max-w-5xl mx-auto px-6 py-12 space-y-10">
-      <header className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Jobs</h1>
+      <header className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Jobs</h1>
 
-        {user && profileComplete && (
-          <Link
-            href="/creator/jobs/new"
-            className="px-5 py-2.5 rounded-lg bg-black text-white"
-          >
-            Post Job
-          </Link>
-        )}
+          {user && profileComplete && (
+            <Link
+              href="/creator/jobs/new"
+              className="px-5 py-2.5 rounded-lg bg-black text-white"
+            >
+              Post Job
+            </Link>
+          )}
+        </div>
+
+        <form className="grid gap-3 md:grid-cols-[1fr_180px_120px]">
+          <input
+            name="q"
+            defaultValue={q}
+            placeholder="Search jobs by title or requirement..."
+            className="w-full border rounded-lg px-3 py-2"
+          />
+          <select name="type" defaultValue={type} className="w-full border rounded-lg px-3 py-2">
+            <option value="all">All Types</option>
+            <option value="ugc">UGC</option>
+            <option value="clipping">Clipping</option>
+            <option value="editing">Editing</option>
+            <option value="other">Other</option>
+          </select>
+          <button className="rounded-lg bg-black text-white px-4 py-2">Search</button>
+        </form>
       </header>
 
       <section className="space-y-6">
@@ -120,11 +168,22 @@ export default async function JobsPage() {
                 {job.title}
               </h2>
 
-              {job.description && (
-                <p className="text-sm text-gray-600">
-                  {job.description}
-                </p>
-              )}
+              <p className="text-sm text-gray-600">
+                {parseJobDescription(job.description).overview || "New opportunity posted by a creator."}
+              </p>
+
+              <div className="flex flex-wrap gap-2 text-xs">
+                <span className="px-2 py-1 rounded-full bg-gray-100 capitalize">
+                  {job.type ?? "other"}
+                </span>
+                <span className="px-2 py-1 rounded-full bg-gray-100">
+                  Budget: ₹{job.budget ?? 0}
+                </span>
+              </div>
+
+              <Link href={`/jobs/${job.id}`} className="text-sm underline">
+                View full details
+              </Link>
 
               {job.is_open ? (
                 user && profileComplete ? (

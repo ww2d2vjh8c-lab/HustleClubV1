@@ -1,6 +1,12 @@
 import { requireCreator } from "@/lib/supabase/requireCreator";
 import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
+import {
+  buildCourseDescription,
+  listToTextarea,
+  parseCourseDescription,
+  textareaToList,
+} from "@/lib/content/richContent";
 
 export const dynamic = "force-dynamic";
 
@@ -21,12 +27,16 @@ async function updateCourse(formData: FormData) {
 
   const id = Number(formData.get("id"));
   const title = formData.get("title") as string;
-  const description = formData.get("description") as string;
   const instructor = formData.get("instructor") as string;
   const price = Number(formData.get("price"));
   const file = formData.get("image") as File;
+  const summary = formData.get("summary") as string;
+  const whatYouWillLearn = textareaToList(String(formData.get("whatYouWillLearn") ?? ""));
+  const whoIsThisFor = textareaToList(String(formData.get("whoIsThisFor") ?? ""));
+  const requirements = textareaToList(String(formData.get("requirements") ?? ""));
+  const curriculum = textareaToList(String(formData.get("curriculum") ?? ""));
 
-  if (!id || !title) {
+  if (!id || !title || !summary.trim()) {
     throw new Error("Invalid data");
   }
 
@@ -54,9 +64,15 @@ async function updateCourse(formData: FormData) {
 
   const updatePayload: CourseUpdatePayload = {
     title,
-    description,
+    description: buildCourseDescription({
+      summary,
+      whatYouWillLearn,
+      whoIsThisFor,
+      requirements,
+      curriculum,
+    }),
     instructor,
-    price,
+    price: Number.isNaN(price) ? 0 : price,
   };
 
   if (imageUrl) {
@@ -145,6 +161,7 @@ export default async function ManageCoursePage({
   }
 
   const isPublished = course.status === "published";
+  const parsed = parseCourseDescription(course.description);
 
   return (
     <main className="max-w-4xl mx-auto p-6 space-y-10">
@@ -203,11 +220,51 @@ export default async function ManageCoursePage({
         </div>
 
         <div>
-          <label className="block text-sm mb-2">Description</label>
+          <label className="block text-sm mb-2">Course Summary</label>
           <textarea
-            name="description"
-            rows={5}
-            defaultValue={course.description ?? ""}
+            name="summary"
+            rows={3}
+            defaultValue={parsed.summary}
+            className="w-full border rounded-md px-4 py-2"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm mb-2">What Learners Will Achieve</label>
+          <textarea
+            name="whatYouWillLearn"
+            rows={4}
+            defaultValue={listToTextarea(parsed.whatYouWillLearn)}
+            className="w-full border rounded-md px-4 py-2"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm mb-2">Who Is This For</label>
+          <textarea
+            name="whoIsThisFor"
+            rows={3}
+            defaultValue={listToTextarea(parsed.whoIsThisFor)}
+            className="w-full border rounded-md px-4 py-2"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm mb-2">Requirements</label>
+          <textarea
+            name="requirements"
+            rows={3}
+            defaultValue={listToTextarea(parsed.requirements)}
+            className="w-full border rounded-md px-4 py-2"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm mb-2">Curriculum Outline</label>
+          <textarea
+            name="curriculum"
+            rows={4}
+            defaultValue={listToTextarea(parsed.curriculum)}
             className="w-full border rounded-md px-4 py-2"
           />
         </div>

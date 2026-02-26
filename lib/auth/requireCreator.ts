@@ -10,6 +10,6 @@ export async function requireCreator() {
       redirect("/login");
     }
 
-    redirect("/become-creator");
+    redirect("/creator/apply");
   }
 }

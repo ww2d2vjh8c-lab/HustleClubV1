@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { submitCreatorRequest } from "@/lib/creator/submitCreatorRequest";
 
 export async function POST(req: Request) {
   const supabase = await createSupabaseServerClient();
-  const { message } = await req.json();
+  const body = await req.json().catch(() => ({}));
 
   const {
     data: { user },
@@ -16,25 +17,22 @@ export async function POST(req: Request) {
     );
   }
 
-  // prevent duplicate requests
-  const { data: existing } = await supabase
-    .from("creator_requests")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("status", "pending")
-    .maybeSingle();
+  const result = await submitCreatorRequest({
+    supabase,
+    userId: user.id,
+    message:
+      typeof body === "object" && body !== null && "message" in body
+        ? (body as { message?: unknown }).message
+        : undefined,
+    requireMessage: false,
+  });
 
-  if (existing) {
+  if (!result.ok) {
     return NextResponse.json(
-      { error: "Request already submitted" },
-      { status: 409 }
+      { error: result.error ?? "Failed to submit request." },
+      { status: result.status }
     );
   }
-
-  await supabase.from("creator_requests").insert({
-    user_id: user.id,
-    message,
-  });
 
   return NextResponse.json({ success: true });
 }

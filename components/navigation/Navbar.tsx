@@ -12,45 +12,43 @@ export default function Navbar({
   user: User | null;
   role: Role;
 }) {
+  const isCreator = role === "creator" || role === "admin";
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b">
       <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        
         {/* Logo */}
         <Link href="/" className="font-bold text-lg">
           HustleClub
         </Link>
 
-        {/* Navigation Links (VISIBLE ON ALL DEVICES) */}
+        {/* Navigation Links */}
         <nav className="flex flex-wrap gap-4 text-sm items-center">
           <Link href="/courses">Courses</Link>
           <Link href="/jobs">Jobs</Link>
           <Link href="/marketplace">Marketplace</Link>
 
+          {user && <Link href="/dashboard">Dashboard</Link>}
+
+          {user && <Link href="/my-courses">My Courses</Link>}
+          {user && <Link href="/my-jobs">My Jobs</Link>}
+          {user && <Link href="/marketplace/orders">Orders</Link>}
+
           {user && role === "user" && (
-            <Link
-              href="/creator/apply"
-              className="text-blue-600 font-medium"
-            >
+            <Link href="/creator/apply" className="text-blue-600 font-medium">
               Become a Creator
             </Link>
           )}
 
-          {user && (role === "creator" || role === "admin") && (
-            <Link
-              href="/creator/dashboard"
-              className="text-green-600 font-medium"
-            >
+          {user && isCreator && (
+            <Link href="/creator/dashboard" className="text-green-600 font-medium">
               Creator Dashboard
             </Link>
           )}
 
           {role === "admin" && (
-            <Link
-              href="/admin/creator-requests"
-              className="text-red-600 font-medium"
-            >
-              Creator Requests
+            <Link href="/admin/dashboard" className="text-red-600 font-medium">
+              Admin
             </Link>
           )}
         </nav>

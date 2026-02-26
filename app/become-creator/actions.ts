@@ -2,21 +2,23 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth/requireUser";
+import { submitCreatorRequest } from "@/lib/creator/submitCreatorRequest";
 
 export async function requestCreatorAccess() {
-  const { user } = await requireUser(); // ✅ NO ARG
+  const { user } = await requireUser();
   const supabase = await createSupabaseServerClient();
 
-  const { error } = await supabase
-    .from("creator_requests")
-    .insert({ user_id: user.id });
+  const result = await submitCreatorRequest({
+    supabase,
+    userId: user.id,
+    requireMessage: false,
+  });
 
-  if (error?.code === "23505") {
-    // duplicate request
+  if (!result.ok && result.status === 409) {
     return;
   }
 
-  if (error) {
-    throw new Error("Failed to submit request");
+  if (!result.ok) {
+    throw new Error(result.error ?? "Failed to submit request");
   }
 }

@@ -4,6 +4,7 @@ import { isProfileComplete } from "@/lib/profile/isProfileComplete";
 import ProfileHoverCard from "@/components/profile/ProfileHoverCard";
 import ApplyButton from "@/components/jobs/ApplyButton";
 import { headers } from "next/headers";
+import { parseJobDescription } from "@/lib/content/richContent";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,8 @@ type JobWithCreator = {
   created_at: string;
   is_open: boolean;
   views: number | null;
+  budget: number | null;
+  type: string | null;
   creator_id: string;
   profile: {
     id: string;
@@ -50,6 +53,8 @@ export default async function JobDetailPage({
       created_at,
       is_open,
       views,
+      budget,
+      type,
       creator_id,
       profile:profiles!jobs_creator_id_fkey (
         id,
@@ -135,55 +140,114 @@ export default async function JobDetailPage({
   /* ======================================================= */
 
   const creator = job.profile?.[0] ?? null;
+  const parsed = parseJobDescription(job.description);
+  const { count: applicationCount } = await supabase
+    .from("job_applications")
+    .select("id", { head: true, count: "exact" })
+    .eq("job_id", job.id);
 
   return (
-    <main className="max-w-3xl mx-auto p-6 space-y-8">
-      {creator && (
-        <ProfileHoverCard
-          username={creator.username ?? "anonymous"}
-          fullName={creator.full_name}
-          avatarUrl={creator.avatar_url}
-          bio={creator.bio}
-        />
-      )}
+    <main className="max-w-6xl mx-auto p-6 space-y-8">
+      <div className="grid lg:grid-cols-[1fr_320px] gap-8 items-start">
+        <section className="space-y-6">
+          {creator && (
+            <ProfileHoverCard
+              username={creator.username ?? "anonymous"}
+              fullName={creator.full_name}
+              avatarUrl={creator.avatar_url}
+              bio={creator.bio}
+            />
+          )}
 
-      <div>
-        <h1 className="text-2xl font-bold">{job.title}</h1>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold">{job.title}</h1>
+            <p className="text-sm text-gray-500">
+              Posted on {new Date(job.created_at).toLocaleDateString()}
+            </p>
+            <div className="flex flex-wrap gap-2 text-xs">
+              <span className="px-2 py-1 rounded-full bg-gray-100 capitalize">
+                {job.type ?? "other"}
+              </span>
+              <span className="px-2 py-1 rounded-full bg-gray-100">
+                Budget: ₹{job.budget ?? 0}
+              </span>
+              <span className="px-2 py-1 rounded-full bg-gray-100">
+                {applicationCount ?? 0} applications
+              </span>
+            </div>
+          </div>
 
-        <p className="text-sm text-gray-500 mt-1">
-          Posted on {new Date(job.created_at).toLocaleDateString()}
-        </p>
+          <p className="text-gray-700">{parsed.overview || "Open role with clear deliverables."}</p>
 
-        {job.description && (
-          <p className="mt-4 text-gray-700 whitespace-pre-line">
-            {job.description}
-          </p>
-        )}
-      </div>
+          <JobListSection title="Responsibilities" items={parsed.responsibilities} />
+          <JobListSection title="Requirements" items={parsed.requirements} />
+          <JobListSection title="Deliverables" items={parsed.deliverables} />
 
-      <div className="pt-4 space-y-3">
-        {!job.is_open && (
-          <span className="text-sm text-gray-400">
-            Applications closed
-          </span>
-        )}
+          {(parsed.timeline || parsed.idealCandidate) && (
+            <section className="grid md:grid-cols-2 gap-4">
+              {parsed.timeline && (
+                <div className="rounded-lg border p-4 bg-white">
+                  <p className="text-xs text-gray-500 uppercase">Timeline</p>
+                  <p className="mt-2 text-sm text-gray-700">{parsed.timeline}</p>
+                </div>
+              )}
+              {parsed.idealCandidate && (
+                <div className="rounded-lg border p-4 bg-white">
+                  <p className="text-xs text-gray-500 uppercase">Ideal Candidate</p>
+                  <p className="mt-2 text-sm text-gray-700">{parsed.idealCandidate}</p>
+                </div>
+              )}
+            </section>
+          )}
+        </section>
 
-        {job.is_open && user && profileComplete && (
-          <ApplyButton jobId={job.id} />
-        )}
+        <aside className="rounded-xl border bg-white p-5 space-y-4 lg:sticky lg:top-24">
+          <p className="text-xs uppercase tracking-wide text-gray-500">Application</p>
+          <p className="text-2xl font-bold">₹{job.budget ?? 0}</p>
+          <ul className="text-sm text-gray-600 space-y-1">
+            <li>{job.views ?? 0} views</li>
+            <li>{applicationCount ?? 0} total applications</li>
+            <li>Status: {job.is_open ? "Open" : "Closed"}</li>
+          </ul>
 
-        {job.is_open && user && !profileComplete && (
-          <Link href="/profile" className="text-yellow-600">
-            Complete profile to apply
-          </Link>
-        )}
+          <div className="pt-2 space-y-3">
+            {!job.is_open && (
+              <span className="text-sm text-gray-400">Applications closed</span>
+            )}
 
-        {job.is_open && !user && (
-          <Link href="/login" className="text-blue-600">
-            Login to apply
-          </Link>
-        )}
+            {job.is_open && user && profileComplete && <ApplyButton jobId={job.id} />}
+
+            {job.is_open && user && !profileComplete && (
+              <Link href="/profile" className="text-yellow-600">
+                Complete profile to apply
+              </Link>
+            )}
+
+            {job.is_open && !user && (
+              <Link href="/login" className="text-blue-600">
+                Login to apply
+              </Link>
+            )}
+          </div>
+        </aside>
       </div>
     </main>
+  );
+}
+
+function JobListSection({ title, items }: { title: string; items: string[] }) {
+  if (!items.length) return null;
+
+  return (
+    <section className="space-y-2">
+      <h2 className="text-lg font-semibold">{title}</h2>
+      <ul className="space-y-2 text-gray-700">
+        {items.map((item, index) => (
+          <li key={`${title}-${index}`} className="rounded-lg border p-3 bg-white">
+            {item}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

@@ -1,6 +1,12 @@
 import { requireCreator } from "@/lib/supabase/requireCreator";
 import { redirect, notFound } from "next/navigation";
 import Image from "next/image";
+import {
+  buildMarketplaceDescription,
+  listToTextarea,
+  parseMarketplaceDescription,
+  textareaToList,
+} from "@/lib/content/richContent";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +26,11 @@ async function updateItem(formData: FormData) {
 
   const id = formData.get("id") as string;
   const title = formData.get("title") as string;
-  const description = formData.get("description") as string;
+  const highlights = formData.get("highlights") as string;
+  const conditionDetails = formData.get("conditionDetails") as string;
+  const shipping = formData.get("shipping") as string;
+  const whySelling = formData.get("whySelling") as string;
+  const specifications = textareaToList(String(formData.get("specifications") ?? ""));
   const price = Number(formData.get("price"));
   const file = formData.get("image") as File;
 
@@ -48,8 +58,14 @@ async function updateItem(formData: FormData) {
 
   const updatePayload: ItemUpdatePayload = {
     title,
-    description,
-    price,
+    description: buildMarketplaceDescription({
+      highlights,
+      conditionDetails,
+      specifications,
+      shipping,
+      whySelling,
+    }),
+    price: Number.isNaN(price) ? 0 : price,
   };
 
   if (imageUrl) {
@@ -182,6 +198,7 @@ export default async function ManageMarketplaceItemPage({
   if (error || !item) {
     notFound();
   }
+  const parsed = parseMarketplaceDescription(item.description);
 
   let status = "Draft";
   let statusColor = "text-gray-500";
@@ -240,11 +257,50 @@ export default async function ManageMarketplaceItemPage({
         </div>
 
         <div>
-          <label className="block text-sm mb-2">Description</label>
+          <label className="block text-sm mb-2">Highlights</label>
           <textarea
-            name="description"
-            defaultValue={item.description}
+            name="highlights"
+            defaultValue={parsed.highlights}
             rows={4}
+            className="w-full border rounded-md px-4 py-2"
+          />
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm mb-2">Condition Details</label>
+            <input
+              name="conditionDetails"
+              defaultValue={parsed.conditionDetails}
+              className="w-full border rounded-md px-4 py-2"
+            />
+          </div>
+          <div>
+            <label className="block text-sm mb-2">Shipping</label>
+            <input
+              name="shipping"
+              defaultValue={parsed.shipping}
+              className="w-full border rounded-md px-4 py-2"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm mb-2">Specifications</label>
+          <textarea
+            name="specifications"
+            rows={3}
+            defaultValue={listToTextarea(parsed.specifications)}
+            className="w-full border rounded-md px-4 py-2"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm mb-2">Why Selling</label>
+          <textarea
+            name="whySelling"
+            rows={2}
+            defaultValue={parsed.whySelling}
             className="w-full border rounded-md px-4 py-2"
           />
         </div>

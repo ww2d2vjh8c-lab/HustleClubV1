@@ -1,6 +1,7 @@
 import { requireUser } from "@/lib/auth/requireUser";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -61,13 +62,9 @@ export default async function DeleteItemPage({
           Yes, delete
         </button>
 
-        <button
-          type="button"
-          onClick={() => redirect("/marketplace/my-items")}
-          className="px-4 py-2 rounded border"
-        >
+        <Link href="/marketplace/my-items" className="px-4 py-2 rounded border inline-flex items-center">
           Cancel
-        </button>
+        </Link>
       </form>
     </main>
   );
