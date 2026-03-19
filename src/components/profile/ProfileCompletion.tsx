@@ -20,6 +20,8 @@ export default function ProfileCompletion({
   const completedCount = checks.filter((check) => check.done).length;
   const percent = Math.round((completedCount / checks.length) * 100);
   const completed = completedCount === checks.length;
+  const avatarDone = Boolean(avatarUrl?.trim());
+  const textFieldsDone = Boolean(username?.trim()) && Boolean(fullName?.trim()) && Boolean(bio?.trim());
 
   return (
     <div
@@ -50,6 +52,11 @@ export default function ProfileCompletion({
           </p>
         ))}
       </div>
+      {!avatarDone && textFieldsDone && (
+        <p className="mt-2 text-xs font-medium text-yellow-700">
+          Upload an avatar below to complete your profile and unlock all features.
+        </p>
+      )}
     </div>
   );
 }
