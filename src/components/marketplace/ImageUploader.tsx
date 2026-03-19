@@ -10,7 +10,15 @@ export default function ImageUploader({
   const supabase = createSupabaseClient();
 
   async function handleFile(file: File) {
-    const path = `marketplace/${crypto.randomUUID()}`;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    // Use userId as first path segment so RLS owner-check policy works:
+    // split_part(name, '/', 1) = auth.uid()::text
+    const path = `${user.id}/${crypto.randomUUID()}`;
 
     const { error } = await supabase.storage
       .from("marketplace")
