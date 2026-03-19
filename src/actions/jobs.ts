@@ -1,6 +1,6 @@
 "use server";
 
-import { requireCreator } from "../lib/supabase/auth";
+import { requireCreator } from "@/lib/supabase/auth";
 
 export async function createJob(input: {
   title: string;

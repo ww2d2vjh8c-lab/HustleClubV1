@@ -1,6 +1,6 @@
 "use server";
 
-import { requireUser } from "../lib/supabase/auth";
+import { requireUser } from "@/lib/supabase/auth";
 
 
 export async function applyToJob(jobId: string) {
