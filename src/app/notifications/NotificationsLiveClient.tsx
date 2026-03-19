@@ -1,7 +1,7 @@
 "use client";
 import { Role } from "@/types";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/client";
 
@@ -14,7 +14,7 @@ export default function NotificationsLiveClient({
   role: Role;
 }) {
   const router = useRouter();
-  const supabase = createSupabaseClient();
+  const supabase = useMemo(() => createSupabaseClient(), []);
   const [status, setStatus] = useState<"idle" | "connected" | "reconnecting">("idle");
 
   useEffect(() => {
