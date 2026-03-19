@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/db/audit";
 
 export async function toggleJobStatus(jobId: string) {
   const { user } = await requireAdmin();
@@ -28,7 +29,7 @@ export async function toggleJobStatus(jobId: string) {
     throw new Error("Failed to update job status");
   }
 
-  await supabase.from("audit_logs").insert({
+  await logAudit({
     actor_id: user.id,
     action: nextOpen ? "admin_job_opened" : "admin_job_closed",
     target_type: "job",
@@ -46,7 +47,7 @@ export async function deleteJob(jobId: string) {
   const { error } = await supabase.from("jobs").delete().eq("id", jobId);
   if (error) throw new Error("Failed to delete job");
 
-  await supabase.from("audit_logs").insert({
+  await logAudit({
     actor_id: user.id,
     action: "admin_job_deleted",
     target_type: "job",

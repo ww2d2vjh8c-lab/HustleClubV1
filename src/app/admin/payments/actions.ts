@@ -6,15 +6,14 @@ import {
   finalizeMarketplacePaymentTransaction,
   markPaymentTransactionFailed,
 } from "@/lib/payments/service";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/db/audit";
 
 export async function simulatePaymentSuccess(transactionId: string) {
   const { user } = await requireAdmin();
-  const supabase = await createSupabaseServerClient();
 
   const finalized = await finalizeMarketplacePaymentTransaction(transactionId);
 
-  await supabase.from("audit_logs").insert({
+  await logAudit({
     actor_id: user.id,
     action: "admin_payment_marked_succeeded",
     target_type: "payment_transaction",
@@ -29,11 +28,10 @@ export async function simulatePaymentSuccess(transactionId: string) {
 
 export async function simulatePaymentFailure(transactionId: string) {
   const { user } = await requireAdmin();
-  const supabase = await createSupabaseServerClient();
 
   await markPaymentTransactionFailed(transactionId, "Marked failed by admin");
 
-  await supabase.from("audit_logs").insert({
+  await logAudit({
     actor_id: user.id,
     action: "admin_payment_marked_failed",
     target_type: "payment_transaction",

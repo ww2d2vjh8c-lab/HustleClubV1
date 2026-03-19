@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/db/audit";
 
 export async function setCourseStatus(courseId: string, status: "draft" | "published") {
   const { user } = await requireAdmin();
@@ -15,7 +16,7 @@ export async function setCourseStatus(courseId: string, status: "draft" | "publi
 
   if (error) throw new Error("Failed to update course status");
 
-  await supabase.from("audit_logs").insert({
+  await logAudit({
     actor_id: user.id,
     action: "admin_course_status_updated",
     target_type: "course",
@@ -34,7 +35,7 @@ export async function deleteCourse(courseId: string) {
   const { error } = await supabase.from("courses").delete().eq("id", courseId);
   if (error) throw new Error("Failed to delete course");
 
-  await supabase.from("audit_logs").insert({
+  await logAudit({
     actor_id: user.id,
     action: "admin_course_deleted",
     target_type: "course",

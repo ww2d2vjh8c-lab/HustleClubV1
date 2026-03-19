@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/db/audit";
 
 type OrderStatus = "paid" | "shipped" | "delivered";
 
@@ -34,7 +35,7 @@ export async function setOrderStatus(orderId: string, status: OrderStatus) {
 
   if (error) throw new Error("Failed to update order status");
 
-  await supabase.from("audit_logs").insert({
+  await logAudit({
     actor_id: user.id,
     action: "admin_order_status_updated",
     target_type: "marketplace_order",

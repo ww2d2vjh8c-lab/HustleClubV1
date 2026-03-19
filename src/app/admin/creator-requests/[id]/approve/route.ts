@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/supabase/auth";
+import { logAudit } from "@/lib/db/audit";
 
 export async function POST(
   request: Request,
@@ -58,7 +59,7 @@ export async function POST(
     );
   }
 
-  await supabase.from("audit_logs").insert({
+  await logAudit({
     actor_id: user.id,
     action: "creator_request_approved",
     target_type: "creator_request",

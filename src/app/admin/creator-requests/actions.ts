@@ -3,6 +3,7 @@
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { logAudit } from "@/lib/db/audit";
 
 /* ───────────────── BULK UPDATE CREATOR REQUESTS ───────────────── */
 
@@ -42,7 +43,7 @@ export async function bulkUpdateCreatorRequests(
   }
 
   /* 3️⃣ Audit log */
-  await supabase.from("audit_logs").insert({
+  await logAudit({
     actor_id: user.id,
     action: `creator_requests_bulk_${status}`,
     metadata: {

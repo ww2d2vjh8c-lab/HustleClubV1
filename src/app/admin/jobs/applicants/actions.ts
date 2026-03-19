@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/db/audit";
 
 export async function acceptApplication(applicationId: string) {
   const { user } = await requireAdmin();
@@ -36,7 +37,7 @@ export async function acceptApplication(applicationId: string) {
     .update({ is_open: false })
     .eq("id", data.job_id);
 
-  await supabase.from("audit_logs").insert({
+  await logAudit({
     actor_id: user.id,
     action: "admin_application_accepted",
     target_type: "job_application",
@@ -76,7 +77,7 @@ export async function updateApplicationStatus(
 
   if (updateError) throw new Error("Failed to update application status");
 
-  await supabase.from("audit_logs").insert({
+  await logAudit({
     actor_id: user.id,
     action: "admin_application_status_updated",
     target_type: "job_application",

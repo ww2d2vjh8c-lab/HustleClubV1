@@ -3,6 +3,7 @@
 import { requireAdmin } from "@/lib/supabase/auth";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/db/audit";
 
 export async function updateUserRole(
   userId: string,
@@ -24,7 +25,7 @@ export async function updateUserRole(
     throw new Error("Failed to update role");
   }
 
-  await supabase.from("audit_logs").insert({
+  await logAudit({
     actor_id: adminUser.id,
     action: "admin_update_user_role",
     target_type: "profile",

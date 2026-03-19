@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/db/audit";
 
 export async function toggleListingPublished(itemId: string) {
   const { user } = await requireAdmin();
@@ -23,7 +24,7 @@ export async function toggleListingPublished(itemId: string) {
 
   if (updateError) throw new Error("Failed to update listing");
 
-  await supabase.from("audit_logs").insert({
+  await logAudit({
     actor_id: user.id,
     action: "admin_listing_publication_toggled",
     target_type: "marketplace_item",
@@ -54,7 +55,7 @@ export async function toggleListingSold(itemId: string) {
 
   if (updateError) throw new Error("Failed to update sold status");
 
-  await supabase.from("audit_logs").insert({
+  await logAudit({
     actor_id: user.id,
     action: "admin_listing_sold_toggled",
     target_type: "marketplace_item",
@@ -77,7 +78,7 @@ export async function deleteListing(itemId: string) {
 
   if (error) throw new Error("Failed to delete listing");
 
-  await supabase.from("audit_logs").insert({
+  await logAudit({
     actor_id: user.id,
     action: "admin_listing_deleted",
     target_type: "marketplace_item",
