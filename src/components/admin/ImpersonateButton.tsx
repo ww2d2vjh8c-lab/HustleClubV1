@@ -1,6 +1,6 @@
 "use client";
 
-import { startImpersonation } from "@/lib/admin/impersonation.actions";
+import { startImpersonation } from "@/lib/admin/impersonation";
 import { useTransition } from "react";
 
 type Props = {

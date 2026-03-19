@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from "./server";
-import { getImpersonatedUserId } from "@/lib/admin/impersonation.actions";
+import { getImpersonatedUserId } from "@/lib/admin/impersonation";
 
 type RequireUserOptions = {
   ignoreImpersonation?: boolean;

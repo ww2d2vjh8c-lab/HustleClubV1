@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/supabase/auth";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import StopImpersonationBanner from "@/components/admin/StopImpersonationBanner";
-import { getImpersonatedUserId } from "@/lib/admin/impersonation.actions";
+import { getImpersonatedUserId } from "@/lib/admin/impersonation";
 
 export const dynamic = "force-dynamic";
 

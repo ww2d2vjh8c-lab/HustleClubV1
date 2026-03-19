@@ -1,6 +1,6 @@
 "use client";
 
-import { stopImpersonation } from "@/lib/admin/impersonation.actions";
+import { stopImpersonation } from "@/lib/admin/impersonation";
 
 export default function StopImpersonationBanner() {
   return (
