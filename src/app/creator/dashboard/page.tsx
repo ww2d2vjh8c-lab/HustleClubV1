@@ -1,6 +1,8 @@
 import { requireCreator } from "@/lib/supabase/requireCreator";
 import Link from "next/link";
 import OrderStatusBadge from "@/components/marketplace/OrderStatusBadge";
+import MetricCard from "@/components/creator/MetricCard";
+import DashboardPanel from "@/components/creator/DashboardPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -178,7 +180,7 @@ export default async function CreatorDashboardPage() {
       </section>
 
       <section className="grid lg:grid-cols-3 gap-6">
-        <Panel
+        <DashboardPanel
           title="Recent Jobs"
           emptyText="No jobs yet."
           footerHref="/creator/jobs/new"
@@ -205,9 +207,9 @@ export default async function CreatorDashboardPage() {
               </div>
             );
           })}
-        </Panel>
+        </DashboardPanel>
 
-        <Panel
+        <DashboardPanel
           title="Recent Courses"
           emptyText="No courses yet."
           footerHref="/creator/courses/new"
@@ -227,9 +229,9 @@ export default async function CreatorDashboardPage() {
               </Link>
             </div>
           ))}
-        </Panel>
+        </DashboardPanel>
 
-        <Panel
+        <DashboardPanel
           title="Marketplace"
           emptyText="No marketplace items yet."
           footerHref="/creator/marketplace/new"
@@ -255,7 +257,7 @@ export default async function CreatorDashboardPage() {
               </div>
             );
           })}
-        </Panel>
+        </DashboardPanel>
       </section>
 
       <section className="space-y-4">
@@ -297,40 +299,4 @@ export default async function CreatorDashboardPage() {
   );
 }
 
-function MetricCard({ title, value }: { title: string; value: number | string }) {
-  return (
-    <div className="border rounded-xl p-4 bg-white shadow-sm">
-      <p className="text-xs text-gray-500">{title}</p>
-      <p className="text-2xl font-bold mt-1">{value}</p>
-    </div>
-  );
-}
-
-function Panel({
-  title,
-  emptyText,
-  footerHref,
-  footerLabel,
-  children,
-}: {
-  title: string;
-  emptyText: string;
-  footerHref: string;
-  footerLabel: string;
-  children: React.ReactNode[];
-}) {
-  const hasItems = children.length > 0;
-
-  return (
-    <section className="border rounded-xl p-5 bg-white space-y-4">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      {hasItems ? children : <p className="text-sm text-gray-500">{emptyText}</p>}
-      {!hasItems && (
-        <Link href={footerHref} className="text-sm underline inline-block">
-          {footerLabel}
-        </Link>
-      )}
-    </section>
-  );
-}
 
