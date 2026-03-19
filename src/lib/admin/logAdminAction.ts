@@ -1,23 +1,14 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-
-type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | {
-      [key: string]: JsonValue;
-    }
-  | JsonValue[];
+import { logAudit } from "@/lib/db/audit";
 
 type LogInput = {
   actorId: string;
   action: string;
   targetType: string;
   targetId?: string;
-  metadata?: JsonValue;
+  metadata?: Record<string, unknown>;
 };
 
+/** @deprecated Use logAudit from @/lib/db/audit directly */
 export async function logAdminAction({
   actorId,
   action,
@@ -25,13 +16,11 @@ export async function logAdminAction({
   targetId,
   metadata,
 }: LogInput) {
-  const supabase = await createSupabaseServerClient();
-
-  await supabase.from("admin_audit_logs").insert({
+  await logAudit({
     actor_id: actorId,
     action,
     target_type: targetType,
-    target_id: targetId ?? null,
-    metadata: metadata ?? null,
+    target_id: targetId,
+    metadata,
   });
 }
