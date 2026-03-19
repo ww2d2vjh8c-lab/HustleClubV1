@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createOrder } from "@/app/marketplace/[id]/buy/actions";
 
@@ -40,46 +40,56 @@ function clearCheckoutKey(itemId: string) {
 
 export default function BuyButton({ itemId }: { itemId: string }) {
   const [pending, start] = useTransition();
+  const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
   const router = useRouter();
 
   return (
-    <button
-      disabled={pending}
-      onClick={() =>
-        start(async () => {
-          try {
-            const checkoutKey = getOrCreateCheckoutKey(itemId);
-            const checkout = await createOrder(itemId, checkoutKey);
+    <div className="flex flex-col items-start gap-2">
+      <button
+        disabled={pending}
+        onClick={() => {
+          setMessage(null);
+          start(async () => {
+            try {
+              const checkoutKey = getOrCreateCheckoutKey(itemId);
+              const checkout = await createOrder(itemId, checkoutKey);
 
-            if (checkout?.idempotencyKey) {
-              window.sessionStorage.setItem(getStorageKey(itemId), checkout.idempotencyKey);
+              if (checkout?.idempotencyKey) {
+                window.sessionStorage.setItem(getStorageKey(itemId), checkout.idempotencyKey);
+              }
+
+              if (checkout?.status === "succeeded") {
+                clearCheckoutKey(itemId);
+                router.push("/marketplace/orders");
+                router.refresh();
+                return;
+              }
+
+              if (checkout?.status === "failed" || checkout?.status === "cancelled") {
+                clearCheckoutKey(itemId);
+              }
+
+              if (checkout?.checkoutUrl) {
+                window.location.href = checkout.checkoutUrl;
+                return;
+              }
+
+              setMessage({ type: "success", text: checkout?.message ?? "Order created successfully" });
+            } catch (error: unknown) {
+              setMessage({ type: "error", text: getErrorMessage(error) });
             }
+          });
+        }}
+        className="px-4 py-2 bg-black text-white rounded disabled:opacity-50"
+      >
+        {pending ? "Processing..." : "Buy now"}
+      </button>
 
-            if (checkout?.status === "succeeded") {
-              clearCheckoutKey(itemId);
-              router.push("/marketplace/orders");
-              router.refresh();
-              return;
-            }
-
-            if (checkout?.status === "failed" || checkout?.status === "cancelled") {
-              clearCheckoutKey(itemId);
-            }
-
-            if (checkout?.checkoutUrl) {
-              window.location.href = checkout.checkoutUrl;
-              return;
-            }
-
-            alert(checkout?.message ?? "Payment checkout created");
-          } catch (error: unknown) {
-            alert(getErrorMessage(error));
-          }
-        })
-      }
-      className="px-4 py-2 bg-black text-white rounded disabled:opacity-50"
-    >
-      {pending ? "Processing..." : "Buy now"}
-    </button>
+      {message && (
+        <p className={`text-sm ${message.type === "error" ? "text-red-500" : "text-green-600"}`}>
+          {message.text}
+        </p>
+      )}
+    </div>
   );
 }
