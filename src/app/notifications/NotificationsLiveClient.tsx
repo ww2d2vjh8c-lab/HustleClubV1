@@ -1,10 +1,10 @@
 "use client";
+import { Role } from "@/types";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/client";
 
-type Role = "user" | "creator" | "admin";
 
 export default function NotificationsLiveClient({
   userId,

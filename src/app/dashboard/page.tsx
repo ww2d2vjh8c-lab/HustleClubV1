@@ -1,10 +1,10 @@
+import { Role } from "@/types";
 import Link from "next/link";
 import { requireUser } from "@/lib/auth/requireUser";
 import { getCreatorRequestStatus } from "@/lib/creator/getCreatorRequestStatus";
 
 export const dynamic = "force-dynamic";
 
-type Role = "user" | "creator" | "admin";
 type JobApplicationRow = {
   id: string;
   status: string;

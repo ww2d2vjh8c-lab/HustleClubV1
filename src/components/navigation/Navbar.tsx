@@ -1,11 +1,11 @@
 "use client";
+import { Role } from "@/types";
 
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 
-type Role = "user" | "creator" | "admin";
 
 export default function Navbar({
   user,

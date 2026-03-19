@@ -1,10 +1,10 @@
+import { Role } from "@/types";
 import { requireAdmin } from "@/lib/supabase/auth";
 import RoleSwitcher from "@/components/admin/RoleSwitcher";
 import ImpersonateButton from "@/components/admin/ImpersonateButton";
 
 export const dynamic = "force-dynamic";
 
-type Role = "user" | "creator" | "admin";
 
 type UserRow = {
   id: string;

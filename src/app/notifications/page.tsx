@@ -1,3 +1,4 @@
+import { Role } from "@/types";
 import Link from "next/link";
 import { requireUser } from "@/lib/auth/requireUser";
 import NotificationsLiveClient from "./NotificationsLiveClient";
@@ -10,7 +11,6 @@ import {
 
 export const dynamic = "force-dynamic";
 
-type Role = "user" | "creator" | "admin";
 
 type JobApplicationRow = {
   id: string;

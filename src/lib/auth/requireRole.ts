@@ -1,7 +1,7 @@
+import { Role } from "@/types";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-type Role = "user" | "creator" | "admin";
 
 export async function requireRole(
   allowed: Role[],

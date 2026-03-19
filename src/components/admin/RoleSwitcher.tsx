@@ -1,10 +1,10 @@
 "use client";
+import { Role } from "@/types";
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { updateUserRole } from "@/app/admin/actions";
 
-type Role = "user" | "creator" | "admin";
 
 export default function RoleSwitcher({
   userId,
