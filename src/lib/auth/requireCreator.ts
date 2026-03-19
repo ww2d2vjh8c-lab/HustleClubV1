@@ -2,14 +2,12 @@ import { redirect } from "next/navigation";
 import { requireCreator as requireSupabaseCreator } from "@/lib/supabase/auth";
 
 export async function requireCreator() {
-  try {
-    const { user, supabase } = await requireSupabaseCreator();
-    return { user, supabase };
-  } catch (error) {
+  const result = await requireSupabaseCreator().catch((error: unknown) => {
     if (error instanceof Error && error.message === "Unauthorized") {
       redirect("/login");
     }
-
-    redirect("/creator/apply");
-  }
+    return null;
+  });
+  if (!result) redirect("/creator/apply");
+  return result;
 }
