@@ -11,7 +11,12 @@ function parseProvider(value: string | null): PaymentProvider {
 
 export async function POST(request: Request) {
   const secret = process.env.PAYMENT_WEBHOOK_SECRET;
-  if (secret) {
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("[HustleClub] PAYMENT_WEBHOOK_SECRET is not set — webhook endpoint is insecure");
+    }
+    console.warn("[HustleClub] Warning: PAYMENT_WEBHOOK_SECRET is not set — accepting all webhook requests in development");
+  } else {
     const incoming = request.headers.get("x-hustleclub-webhook-secret");
     if (incoming !== secret) {
       return NextResponse.json({ error: "Unauthorized webhook request" }, { status: 401 });
