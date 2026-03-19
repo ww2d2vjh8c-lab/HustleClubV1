@@ -215,7 +215,7 @@ export default async function JobDetailPage({
               <span className="text-sm text-gray-400">Applications closed</span>
             )}
 
-            {job.is_open && user && profileComplete && <ApplyButton jobId={job.id} />}
+            {job.is_open && user && profileComplete && <ApplyButton jobId={String(job.id)} />}
 
             {job.is_open && user && !profileComplete && (
               <Link href="/profile" className="text-yellow-600">

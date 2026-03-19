@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-export default function ApplyButton({ jobId }: { jobId: number }) {
+export default function ApplyButton({ jobId }: { jobId: string }) {
   const [loading, setLoading] = useState(false);
   const [applied, setApplied] = useState(false);
   const [checking, setChecking] = useState(true);

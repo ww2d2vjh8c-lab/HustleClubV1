@@ -3,7 +3,7 @@
 import { requireUser } from "../lib/supabase/auth";
 
 
-export async function applyToJob(jobId: number) {
+export async function applyToJob(jobId: string) {
   const { supabase, user } = await requireUser();
 
   const { error } = await supabase.from("job_applications").insert({

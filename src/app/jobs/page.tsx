@@ -188,7 +188,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
 
               {job.is_open ? (
                 user && profileComplete ? (
-                  <ApplyButton jobId={job.id} />
+                  <ApplyButton jobId={String(job.id)} />
                 ) : user ? (
                   <Link
                     href="/profile"
