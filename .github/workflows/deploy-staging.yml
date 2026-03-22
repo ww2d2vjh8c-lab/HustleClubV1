@@ -1,0 +1,103 @@
+name: Deploy → Staging
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: true
+
+jobs:
+  # ── 1. Guard: must pass CI first ─────────────────────────────────────────
+  ci:
+    name: CI gate
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  # ── 2. Migrate Supabase staging DB ───────────────────────────────────────
+  migrate:
+    name: Run Supabase migrations (staging)
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link to staging project
+        run: supabase link --project-ref ${{ secrets.SUPABASE_STAGING_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Push migrations
+        run: supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+  # ── 3. Deploy to Vercel staging ──────────────────────────────────────────
+  deploy:
+    name: Deploy to Vercel (staging)
+    needs: migrate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    outputs:
+      deployment_url: ${{ steps.deploy.outputs.deployment-url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        id: deploy
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+          alias-domains: staging.hustleclub.in
+
+  # ── 4. Smoke test staging ────────────────────────────────────────────────
+  smoke:
+    name: Smoke test staging
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Health check
+        run: |
+          url="${{ needs.deploy.outputs.deployment_url }}/api/health"
+          echo "Checking $url"
+          for i in 1 2 3 4 5; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$url")
+            if [ "$STATUS" = "200" ]; then
+              echo "Health check passed (status $STATUS)"
+              exit 0
+            fi
+            echo "Attempt $i: got $STATUS, retrying in 10s..."
+            sleep 10
+          done
+          echo "Health check failed after 5 attempts"
+          exit 1
+
+      - name: Notify Slack on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": ":red_circle: Staging deploy failed for *${{ github.ref_name }}*\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

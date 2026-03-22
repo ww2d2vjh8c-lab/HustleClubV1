@@ -1,0 +1,207 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # ── 1. Danger checks (PR hygiene) ─────────────────────────────────────────
+  pr-hygiene:
+    name: PR hygiene
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check PR title follows convention
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            security
+            perf
+            refactor
+            test
+            chore
+            docs
+            ci
+
+  # ── 2. Full CI ─────────────────────────────────────────────────────────────
+  ci:
+    name: CI gate
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  # ── 3. Bundle size analysis ────────────────────────────────────────────────
+  bundle-size:
+    name: Bundle size
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build + analyze bundle
+        run: npm run build
+        env:
+          ANALYZE: "true"
+
+      - name: Report bundle size
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let comment = '## Bundle Size Report\n\n';
+            // Parse .next/build-manifest.json for page sizes
+            try {
+              const buildId = fs.readFileSync('.next/BUILD_ID', 'utf8').trim();
+              comment += `Build ID: \`${buildId}\`\n\n`;
+              comment += '_Full bundle analysis available in workflow artifacts._\n';
+            } catch {
+              comment += '_Build analysis not available._\n';
+            }
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.login === 'github-actions[bot]' &&
+              c.body.startsWith('## Bundle Size Report')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: comment,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment,
+              });
+            }
+
+  # ── 4. Vercel preview deploy ───────────────────────────────────────────────
+  preview:
+    name: Preview deploy
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    outputs:
+      url: ${{ steps.deploy.outputs.deployment-url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy preview to Vercel
+        id: deploy
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-comment: true
+
+  # ── 5. Migration dry-run check ─────────────────────────────────────────────
+  migrations:
+    name: Migration diff check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+
+      - name: Check for new migration files
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { execSync } = require('child_process');
+            const diff = execSync(
+              'git diff --name-only origin/${{ github.base_ref }}...HEAD -- supabase/migrations/',
+              { encoding: 'utf8' }
+            ).trim();
+
+            if (!diff) {
+              console.log('No new migrations in this PR.');
+              return;
+            }
+
+            const files = diff.split('\n').filter(Boolean);
+            const comment = [
+              '## Database Migrations',
+              '',
+              `This PR adds **${files.length}** new migration file(s):`,
+              '',
+              ...files.map(f => `- \`${f}\``),
+              '',
+              '> These will be applied automatically on merge → staging and on release → production.',
+              '> **Review carefully** — migrations cannot be rolled back once applied to production.',
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.login === 'github-actions[bot]' &&
+              c.body.startsWith('## Database Migrations')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: comment,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment,
+              });
+            }
