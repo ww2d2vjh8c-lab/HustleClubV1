@@ -1,263 +1,156 @@
-# 🚀 HustleClub
+# HustleClub
 
-> **Learn. Earn. Trade.**
+**A full-stack creator economy platform built for India.**
+Creators sell courses, post gig jobs, and list marketplace items. Users learn, apply, and buy — all in one place.
 
-HustleClub is a creator-first commerce and career platform built for India. It combines three revenue channels — courses, paid UGC gig jobs, and a thrift/digital marketplace — with a role-based ecosystem for users, creators, and admins.
-
----
-
-## 🌍 Vision
-
-HustleClub aims to become India's creator-powered digital marketplace where:
-
-- Creators sell knowledge and digital products
-- Users earn money through UGC content gigs
-- Communities grow around skills and hustles
-- Everything feels premium but accessible
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-hustleclub.vercel.app-5B2DE8?style=for-the-badge)](https://hustleclub.vercel.app)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
 
 ---
 
-## 🧱 Tech Stack
+## What it does
 
-| Layer | Technology |
+HustleClub is a **multi-sided marketplace** with three revenue channels in one app:
+
+| Channel | Creator does | User does |
+|---|---|---|
+| **Courses** | Create + publish lessons | Enrol + learn |
+| **Gig Jobs** | Post UGC/freelance jobs | Apply + get hired |
+| **Marketplace** | List digital / thrift items | Browse + buy |
+
+Role system: `user` → `creator` (admin-approved) → `admin`
+
+---
+
+## Tech Stack
+
+| Layer | Tech |
 |---|---|
-| Framework | Next.js 16 (App Router) |
+| Framework | Next.js 16 App Router (SSR + Server Actions) |
+| Language | TypeScript — 0 errors across full codebase |
 | UI | React 19 + Tailwind CSS 4 |
-| Language | TypeScript |
-| Backend | Supabase (Auth + Postgres + Storage + Realtime) |
-| Database Security | Row Level Security (RLS) |
-| Payments | Pluggable provider layer (mock / Stripe / Razorpay) |
+| Database | Supabase PostgreSQL with Row Level Security |
+| Auth | Supabase Auth + `@supabase/ssr` (cookie-based SSR sessions) |
+| Storage | Supabase Storage (avatars + marketplace images) |
+| Realtime | Supabase Realtime channels (live notifications) |
+| Payments | Pluggable FSM — mock / Stripe / Razorpay via env var |
 | Testing | Vitest |
+| CI/CD | GitHub Actions → Vercel (staging + production pipelines) |
 
 ---
 
-## ✅ Implemented Features
+## Architecture
 
-### Authentication
-- Email/password signup and login
-- Server-side SSR session resolution via `@supabase/ssr`
-- Role-based navbar (rendered server-side, no hydration flash)
-- Email verification resend flow
+```
+HTTP Request
+  → middleware.ts          (Supabase session refresh on every request)
+  → RootLayout             (SSR: reads user + role → renders Navbar server-side)
+  → Page / Layout          (requireUser / requireCreator / requireAdmin guards)
+  → Server Action          (auth-gated, calls service layer)
+  → lib/payments/          (idempotent FSM, webhook deduplication)
+  → Supabase / PostgreSQL  (RLS as defense-in-depth)
+```
 
-### User Roles
-| Role | Capabilities |
-|---|---|
-| **User** | Browse courses, jobs, and marketplace · Apply to jobs · Buy items · Apply to become creator |
-| **Creator** | Post and manage jobs · Create and publish courses · List marketplace items · View analytics · Manage applications and orders |
-| **Admin** | Review and approve creator requests · Moderate jobs, courses, and listings · Impersonate users · View platform analytics · Full audit log access |
+**Key architectural decisions:**
 
-### Jobs System
-- Creator job posting with title, description, budget, type
-- Open/closed job status
-- User job applications with status tracking (pending → accepted/rejected)
-- Creator applicant management dashboard
-- Job views tracking (per-user and per-IP)
+- **Middleware session refresh** — Supabase SSR cookies refreshed on every request via `createServerClient` in `middleware.ts`. No silent session expiry.
+- **Defense-in-depth auth** — RLS at the DB layer + `requireUser/Creator/Admin` guards at the application layer. Both must pass.
+- **Idempotent payment FSM** — `sessionStorage` idempotency key prevents duplicate charges on retries. State machine (`created → processing → succeeded/failed`) makes all transitions explicit and testable.
+- **Webhook deduplication** — `payment_webhook_events.event_id` unique constraint blocks double-processing at the database level.
+- **Admin impersonation** — httpOnly cookie overlay; swaps `user.id` in all downstream queries. Full audit trail on every action.
 
-### Courses System
-- Creator course creation (title, description, image, pricing)
-- Draft/published workflow
-- User enrollment system
-- Course learning page (enrolled-only access)
-- Creator course analytics
+---
 
-### Marketplace
-- Item listing with images (Supabase Storage), description, price
-- Draft/published/sold item states
-- Full buy flow with idempotent payment state machine
-- Order tracking (paid → shipped → delivered)
-- Seller order management dashboard
+## Key Features
 
 ### Payment System
-- Idempotent checkout with session-storage key persistence
-- State machine: `created → requires_action → processing → succeeded/failed/cancelled/refunded`
-- Webhook event persistence and deduplication
-- Pluggable provider: swap mock → Stripe or Razorpay via `PAYMENT_PROVIDER` env var
-- Concurrency-safe item locking (`is_sold = true` atomic update)
-- Automatic expired reservation cleanup
+- Full state machine: `created → requires_action → processing → succeeded / failed / cancelled / refunded`
+- Idempotency key pattern (sessionStorage) — safe on retry, safe on double-click
+- Webhook signature validation, event deduplication via unique DB constraint
+- Optimistic concurrency: `UPDATE WHERE status = currentStatus` — prevents race conditions
+- Atomic item lock on purchase (`is_sold = true`)
+- Provider-agnostic: swap `PAYMENT_PROVIDER=razorpay` in env, zero code changes
 
 ### Admin Console
-- Platform-wide analytics dashboard (users, creators, jobs, courses, marketplace, payments)
-- Creator request review and bulk approve/reject
+- Platform analytics dashboard (users, creators, GMV, job counts)
+- Creator request queue with approve / reject
 - User role management with self-protection guard
-- Admin impersonation (view platform as any user)
-- Audit log for all moderated actions
-- Admin sidebar navigation
+- **User impersonation** — admin views the platform as any user for debugging
+- Full audit log (actor, action, target, metadata, timestamp) via `logAudit()`
+
+### Security Hardening (post-audit)
+- Server-side input validation on all mutations (`validateUsername`, `validateBio`, etc.)
+- Marketplace storage RLS scoped to owner folder (`split_part(name, '/', 1) = auth.uid()::text`)
+- `updateApplicationStatus` requires creator ownership check — not just RLS
+- Webhook secret required in production; fails-closed if missing
 
 ### Notifications
-- Role-aware notification feed (different content for user / creator / admin)
-- Supabase Realtime channel subscriptions for live updates
+- Role-aware feed (user / creator / admin see different events)
+- Supabase Realtime channel with proper `useEffect` cleanup on unmount
 - 60-second polling fallback
-- Notification deduplication
-
-### Profile System
-- Username, full name, bio, avatar (Supabase Storage)
-- Profile completeness enforcement before accessing gated features
-- Public profile page at `/u/:username`
-- Client-side validation + server-side validation helpers
 
 ---
 
-## 🗂 Project Structure
+## CI/CD Pipeline
 
 ```
-/src
-├── actions/            Server actions (createJob, createCourse, createOrder, etc.)
-├── app/
-│   ├── (auth)/         Login, signup, signout routes
-│   ├── admin/          Admin console (dashboard, users, jobs, courses, marketplace, analytics)
-│   ├── api/            API routes (auth, payments webhook, creator requests)
-│   ├── creator/        Creator dashboard, jobs, courses, marketplace management
-│   ├── courses/        Public course browse + detail
-│   ├── jobs/           Public job browse + detail
-│   ├── marketplace/    Public marketplace browse + buy flow + orders
-│   ├── notifications/  Role-aware notification feed with live updates
-│   └── profile/        Profile edit page
-├── components/
-│   ├── admin/          Admin-specific components (sidebar, impersonation banner, etc.)
-│   ├── jobs/           Job cards, applicant management
-│   ├── marketplace/    Item cards, buy button, order management
-│   ├── navigation/     Navbar (server-rendered, role-aware)
-│   ├── profile/        Profile form, avatar uploader, profile hover card
-│   └── ui/             Generic design system (Card, Button, Badge, Skeleton, etc.)
-└── lib/
-    ├── auth/           requireUser, requireCreator, requireAdmin guards
-    ├── audit/          logAuditEvent() helper
-    ├── notifications/  Notification helpers + formatRelativeTime
-    ├── payments/       Payment service (state machine + checkout) + state FSM
-    ├── profile/        isProfileComplete, validation functions
-    └── supabase/       Server client, browser client, admin client, auth resolvers
-
-/supabase
-└── migrations/         Full schema: tables, RLS policies, indexes, triggers, storage buckets
+Push any branch     → CI: lint + tsc --noEmit + vitest
+Open PR → main      → PR Checks: CI + Vercel preview URL + migration diff comment
+Merge to main       → Deploy → Staging: migrations + Vercel + /api/health smoke test
+Push tag v*.*.*     → Deploy → Production: manual approval gate + migrations + Vercel --prod + GitHub Release
 ```
+
+Daily at 00:30 IST — Supabase Edge Function aggregates platform analytics into `analytics_daily_snapshots`.
 
 ---
 
-## 🔐 Authentication Flow
+## Documentation
 
-```
-Login → Supabase Auth → SSR Cookie Set
-      → RootLayout reads session server-side
-      → Profile role fetched
-      → Navbar(user, role) rendered
-      → Protected routes check via requireUser/requireCreator/requireAdmin
-      → RLS enforces at database level as defense-in-depth
-```
+| Doc | Contents |
+|---|---|
+| [`docs/AUDIT.md`](./docs/AUDIT.md) | 22-issue engineering audit — architecture, security, performance |
+| [`docs/EXECUTION-PLAN.md`](./docs/EXECUTION-PLAN.md) | Master fix plan — 20 microtasks, phases A–F, Claude Code execution commands |
+| [`docs/PIPELINE.md`](./docs/PIPELINE.md) | CI/CD setup guide, secrets reference, data pipeline docs |
+| [`docs/HustleClub-PRD.docx`](./docs/HustleClub-PRD.docx) | Product Requirements Document |
+| [`docs/HustleClub-TRD.docx`](./docs/HustleClub-TRD.docx) | Technical Requirements Document |
 
 ---
 
-## 🛠 Environment Setup
+## Local Setup
 
-Create `.env.local`:
+```bash
+# 1. Clone and install
+git clone https://github.com/YOUR_USERNAME/HustleClubV1
+cd HustleClubV1
+npm install
+
+# 2. Set environment variables
+cp .env.example .env.local
+# Fill in your Supabase credentials (see below)
+
+# 3. Run migrations
+# Paste supabase/migrations/*.sql into Supabase SQL editor in order
+
+# 4. Start dev server
+npm run dev
+# → http://localhost:3000
+```
+
+### Environment Variables
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-
-# Payment provider: "mock" | "stripe" | "razorpay"
 PAYMENT_PROVIDER=mock
-
-# Optional: set a secret to validate incoming payment webhooks
-PAYMENT_WEBHOOK_SECRET=your_webhook_secret
+PAYMENT_WEBHOOK_SECRET=any_string_for_local_dev
 ```
 
 ---
 
-## ⚙️ Development Setup
+## Built by
 
-```bash
-# 1. Install dependencies
-npm install
-
-# 2. Run the development server
-npm run dev
-# → http://localhost:3000
-
-# 3. Run tests
-npm test
-
-# 4. Type-check
-npx tsc --noEmit
-```
-
-### Supabase Setup
-
-1. Create a Supabase project
-2. Run all migrations from `supabase/migrations/` in order via the Supabase SQL Editor
-3. In Supabase Auth settings: set Site URL to `http://localhost:3000`
-4. Email confirmation can be disabled for local development
-
----
-
-## 📈 Roadmap
-
-### Phase 1 — Completed ✅
-- Auth system, role-based access
-- Job posting, applications, and tracking
-- Course creation, publishing, and enrollment
-- Marketplace with full buy/sell/order flow
-- Payment state machine with webhook support
-- Admin dashboard with analytics, moderation, and audit logs
-- Creator dashboard and analytics
-- Realtime notifications
-
-### Phase 2 — In Progress 🚧
-- UGC clip verification system
-- View-based payout logic for creators
-- Community forums
-- Mobile-first UI refinement
-- Rate limiting on key endpoints
-
-### Phase 3 — Planned
-- Subscription tiers
-- Featured creator placements
-- Live Stripe / Razorpay payment integration (UPI focus)
-- Push notifications
-- Creator leaderboards
-
----
-
-## 🧠 Architectural Decisions
-
-**Why server-rendered Navbar?**
-To avoid hydration mismatches. The user session and role are resolved once on the server and passed as props — no client-side session reads, no flash of wrong UI.
-
-**Why RLS + application-level auth guards?**
-Defense in depth. RLS prevents unauthorized DB access even if application code has a bug. Application guards (requireUser, requireCreator, requireAdmin) give clear, auditable control flow and enable proper redirect behavior.
-
-**Why an idempotent payment state machine?**
-Payments are the highest-risk part of any platform. The idempotency key pattern ensures that duplicate requests (from retries or double-clicks) never create duplicate charges or orders. The FSM makes all valid and invalid state transitions explicit and testable.
-
----
-
-## 🎨 Design Philosophy
-
-- Minimal but bold — clean surfaces, purposeful typography
-- Creator-first — creator workflows are first-class, not bolted on
-- No dark patterns — trust-driven UI at every touchpoint
-- Scalable system — architecture designed for growth, not just MVP
-
----
-
-## 📄 Docs
-
-- [`docs/full-website-wireframe.md`](./docs/full-website-wireframe.md) — Full sitemap, role flows, API wireframe
-- [`docs/payment-integration.md`](./docs/payment-integration.md) — Payment provider integration guide
-- [`docs/AUDIT.md`](./docs/AUDIT.md) — Engineering audit: architecture review, known issues, refactor plan
-
----
-
-## 🧑‍💻 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Keep all code typed — `npx tsc --noEmit` must pass
-4. Submit a PR with a clear description
-
----
-
-## 📜 License
-
-Private Project — HustleClub © 2026
+**Ayush Kaushik** · [coc123.1607@gmail.com](mailto:coc123.1607@gmail.com)
