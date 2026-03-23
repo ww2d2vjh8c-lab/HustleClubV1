@@ -154,3 +154,106 @@ PAYMENT_WEBHOOK_SECRET=any_string_for_local_dev
 ## Built by
 
 **Ayush Kaushik** · [coc123.1607@gmail.com](mailto:coc123.1607@gmail.com)
+
+---
+
+## 🔍 Inspect & Debug Locally
+
+This section covers how to run, inspect, and test HustleClub on your local machine.
+
+### 1. Clone & Run
+
+```bash
+git clone https://github.com/ww2d2vjh8c-lab/HustleClubV1
+cd HustleClubV1
+npm install
+cp .env.example .env.local   # fill in Supabase credentials
+npm run dev                   # → http://localhost:3000
+```
+
+### 2. Environment Variables
+
+Create `.env.local` with:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+PAYMENT_PROVIDER=mock
+PAYMENT_WEBHOOK_SECRET=any_string_for_local_dev
+```
+
+Get credentials from: **Supabase Dashboard → Project Settings → API**
+
+### 3. Test User Roles
+
+Create separate accounts to test the full permission system:
+
+| Role | How to get it | What to test |
+|------|--------------|-------------- |
+| `user` | Sign up at `/auth/signup` | Enrol in courses, apply for jobs, buy from marketplace |
+| `creator` | User requests upgrade → admin approves it | Create courses, post gig jobs, list marketplace items |
+| `admin` | Run SQL: `UPDATE profiles SET role = 'admin' WHERE email = 'you@example.com'` | Creator approvals, analytics dashboard, user impersonation |
+
+### 4. Inspect with Browser DevTools (F12)
+
+Open **Chrome DevTools** while `npm run dev` is running:
+
+- **Network tab** — every Server Action fires as a `POST /` request. Click the request to inspect the exact payload and response — this shows you what each action receives and returns.
+- **Application → Cookies** — look for `sb-*` cookies. These are the Supabase SSR session tokens refreshed on every request by `middleware.ts`.
+- **Console** — Supabase Realtime events print here (watch live notification delivery). Payment FSM state transitions also log here.
+
+### 5. Attach Node.js DevTools (Debug Server-Side Code)
+
+```bash
+NODE_OPTIONS='--inspect' npm run dev
+```
+
+Then open **`chrome://inspect`** in a new tab → click *inspect* under Remote Target.
+
+This attaches Chrome DevTools to the Next.js server process. You can now:
+- Set breakpoints inside Server Actions
+- Step through `middleware.ts` on each request
+- Inspect the service layer and payment FSM in real time
+
+### 6. Test the Payment FSM
+
+`PAYMENT_PROVIDER=mock` simulates all payment states locally with no real credentials.
+
+To manually test webhook deduplication (the DB should process each `event_id` exactly once):
+
+```bash
+# Send a payment webhook
+curl -X POST http://localhost:3000/api/webhooks/payment \
+  -H "Content-Type: application/json" \
+  -H "x-webhook-secret: any_string_for_local_dev" \
+  -d '{"event_id":"test-123","type":"payment.succeeded","order_id":"YOUR_ORDER_ID"}'
+
+# Send the exact same request again
+# → should return 200 but NOT double-process
+curl -X POST http://localhost:3000/api/webhooks/payment \
+  -H "Content-Type: application/json" \
+  -H "x-webhook-secret: any_string_for_local_dev" \
+  -d '{"event_id":"test-123","type":"payment.succeeded","order_id":"YOUR_ORDER_ID"}'
+```
+
+Verify in Supabase SQL Editor: `SELECT * FROM payment_webhook_events WHERE event_id = 'test-123'` — should have exactly 1 row.
+
+### 7. Inspect the Database Live
+
+In your **Supabase Dashboard**:
+
+- **Table Editor** — browse `profiles`, `courses`, `orders`, `bills`, `notifications` live
+- **SQL Editor** — run queries like `SELECT * FROM profiles WHERE role = 'creator'`
+- **Logs → API** — see every SQL query your local session fires, with execution time
+- **Realtime settings** — enable the `notifications` table to watch rows appear in real time
+
+### 8. Run Tests & Type-Check
+
+```bash
+npm run test          # Vitest — unit and integration tests
+npm run test:watch    # Watch mode: reruns tests on every file save
+npx tsc --noEmit      # TypeScript check — should report 0 errors
+npm run lint          # ESLint
+```
