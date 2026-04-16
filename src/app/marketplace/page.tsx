@@ -1,5 +1,4 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import Link from "next/link";
 import Image from "next/image";
 import { parseMarketplaceDescription } from "@/lib/content/richContent";
 
@@ -65,84 +64,144 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
   }
 
   return (
-    <main className="max-w-6xl mx-auto px-6 py-12 space-y-12">
-      {/* HEADER */}
-      <header className="space-y-3">
-        <h1 className="text-3xl font-bold">Marketplace</h1>
-        <p className="text-gray-600">
-          Discover curated items from our community
-        </p>
-      </header>
+    <main className="app-container" style={{ padding: "2.5rem 0 4rem" }}>
+      {/* Page header */}
+      <div style={{ marginBottom: "2rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: ".6rem", marginBottom: ".75rem" }}>
+          <div style={{ width: "24px", height: "2px", background: "var(--neon-pink)", boxShadow: "var(--glow-pink)" }} />
+          <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: ".65rem", letterSpacing: ".2em", color: "var(--neon-pink)", textTransform: "uppercase" }}>
+            Digital Goods
+          </span>
+        </div>
+        <h1 className="page-title">THE <span style={{ color: "var(--neon-pink)", textShadow: "var(--glow-pink)" }}>MARKET</span></h1>
+        <p className="page-subtitle">Curated digital goods from the HustleClub community.</p>
+      </div>
 
-      <form className="grid gap-3 md:grid-cols-[1fr_200px_120px]">
+      {/* Search/sort bar */}
+      <form style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: ".5rem", marginBottom: "2rem" }}>
         <input
           name="q"
           defaultValue={q}
-          placeholder="Search products, keywords..."
-          className="w-full border rounded-lg px-3 py-2"
+          placeholder="SEARCH ITEMS..."
+          style={{ padding: ".6rem 1rem", fontSize: ".85rem", fontFamily: "var(--font-mono), monospace", letterSpacing: ".05em" }}
         />
-        <select name="sort" defaultValue={sort} className="w-full border rounded-lg px-3 py-2">
-          <option value="newest">Newest</option>
-          <option value="price_low">Price: Low to High</option>
-          <option value="price_high">Price: High to Low</option>
+        <select name="sort" defaultValue={sort} style={{ padding: ".6rem .9rem", fontSize: ".85rem", cursor: "pointer" }}>
+          <option value="newest">NEWEST</option>
+          <option value="price_low">PRICE ↑</option>
+          <option value="price_high">PRICE ↓</option>
         </select>
-        <button className="rounded-lg bg-black text-white px-4 py-2">Search</button>
+        <button type="submit" className="btn-neon" style={{ fontSize: ".85rem", borderColor: "var(--neon-pink)", color: "var(--neon-pink)", background: "rgba(255,0,204,.08)" }}>
+          SEARCH
+        </button>
       </form>
 
-      {/* EMPTY STATE */}
-      {(!items || items.length === 0) && (
-        <div className="border rounded-xl p-10 text-center bg-gray-50">
-          <p className="text-gray-500">
-            No items available right now.
+      {/* Items grid */}
+      {items && items.length > 0 ? (
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+          gap: "1px",
+          border: "1px solid var(--line)",
+          borderRadius: "4px",
+          overflow: "hidden",
+          background: "var(--line)",
+        }}>
+          {items.map((item) => (
+            <a key={item.id} href={`/marketplace/${item.id}`} style={{
+              display: "block",
+              textDecoration: "none",
+              background: "var(--surface-strong)",
+              transition: "background 150ms ease",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-hover)")}
+            onMouseLeave={e => (e.currentTarget.style.background = "var(--surface-strong)")}
+            >
+              {/* Image */}
+              <div style={{
+                width: "100%",
+                aspectRatio: "16/9",
+                background: "var(--bg-1)",
+                overflow: "hidden",
+                borderBottom: "1px solid var(--line)",
+                position: "relative",
+              }}>
+                {item.image_url ? (
+                  <Image
+                    src={item.image_url}
+                    alt={item.title}
+                    fill
+                    style={{ objectFit: "cover" }}
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                ) : (
+                  <div style={{
+                    width: "100%", height: "100%",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontFamily: "var(--font-display), cursive",
+                    fontSize: "3rem", letterSpacing: ".1em",
+                    color: "var(--text-2)",
+                  }}>
+                    {item.title.slice(0, 2).toUpperCase()}
+                  </div>
+                )}
+              </div>
+
+              {/* Info */}
+              <div style={{ padding: "1rem 1.25rem" }}>
+                <h3 style={{
+                  fontFamily: "var(--font-display), cursive",
+                  fontSize: "1.2rem",
+                  letterSpacing: ".05em",
+                  margin: "0 0 .35rem",
+                  color: "var(--text-0)",
+                }}>{item.title}</h3>
+
+                {item.description && (
+                  <p style={{ color: "var(--text-1)", fontSize: ".8rem", lineHeight: 1.55, margin: "0 0 .75rem",
+                    display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                    {parseMarketplaceDescription(item.description)?.highlights ?? item.description.slice(0, 80)}
+                  </p>
+                )}
+
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span style={{
+                    fontFamily: "var(--font-display), cursive",
+                    fontSize: "1.4rem",
+                    color: "var(--neon-green)",
+                    textShadow: "var(--glow-green)",
+                    letterSpacing: ".05em",
+                  }}>
+                    {item.price != null ? `₹${item.price.toLocaleString()}` : "FREE"}
+                  </span>
+                  <span style={{
+                    fontFamily: "var(--font-mono), monospace",
+                    fontSize: ".65rem",
+                    color: "var(--text-2)",
+                    letterSpacing: ".05em",
+                  }}>
+                    VIEW →
+                  </span>
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div style={{
+          textAlign: "center",
+          padding: "5rem 2rem",
+          border: "1px solid var(--line)",
+          borderRadius: "4px",
+          background: "var(--surface-strong)",
+        }}>
+          <div style={{ fontFamily: "var(--font-display), cursive", fontSize: "3rem", color: "var(--text-2)", letterSpacing: ".1em" }}>
+            NOTHING HERE YET
+          </div>
+          <p style={{ color: "var(--text-2)", marginTop: ".75rem", fontFamily: "var(--font-mono), monospace", fontSize: ".8rem" }}>
+            {q ? `NO RESULTS FOR "${q.toUpperCase()}"` : "THE MARKET IS EMPTY — BE THE FIRST TO LIST"}
           </p>
         </div>
       )}
-
-      {/* GRID */}
-      <section className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {items?.map((item) => (
-          <Link
-            key={item.id}
-            href={`/marketplace/${item.id}`}
-            className="group border rounded-xl bg-white overflow-hidden hover:shadow-lg transition"
-          >
-            {/* IMAGE */}
-            <div className="h-48 bg-gray-100 overflow-hidden">
-              {item.image_url ? (
-                <Image
-                  src={item.image_url}
-                  alt={item.title}
-                  width={600}
-                  height={400}
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-                  No Image
-                </div>
-              )}
-            </div>
-
-            {/* CONTENT */}
-            <div className="p-5 space-y-2">
-              <h2 className="font-semibold text-lg group-hover:underline">
-                {item.title}
-              </h2>
-
-              <p className="text-sm text-gray-500 line-clamp-2">
-                {parseMarketplaceDescription(item.description).highlights || "Verified community listing"}
-              </p>
-
-              <p className="text-sm text-gray-600">
-                ₹{item.price ? item.price.toLocaleString() : "0"}
-              </p>
-
-              <p className="text-sm font-medium">View product →</p>
-            </div>
-          </Link>
-        ))}
-      </section>
     </main>
   );
 }

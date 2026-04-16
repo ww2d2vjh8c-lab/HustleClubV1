@@ -106,96 +106,280 @@ export default function SignupPage() {
     setResendingVerification(false);
   }
 
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: ".65rem .9rem",
+    fontSize: ".9rem",
+    background: "#0d0d0d",
+    border: "1px solid #2a2a2a",
+    borderRadius: "3px",
+    color: "#ffffff",
+    outline: "none",
+    boxSizing: "border-box",
+    fontFamily: "'Courier New', monospace",
+    transition: "border-color .2s",
+  };
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: ".78rem",
+    letterSpacing: ".06em",
+    color: "#aaaaaa",
+    fontFamily: "'Bebas Neue', 'Arial Black', cursive",
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <form
-        onSubmit={handleSignup}
-        className="app-surface w-full max-w-md rounded-2xl p-7 space-y-5"
-      >
-        <div className="space-y-1 text-center">
-          <h1 className="text-2xl font-semibold font-[var(--font-display)]">Create your account</h1>
-          <p className="text-sm text-slate-600">Get access to courses, jobs, and marketplace in one place.</p>
-        </div>
+    <div style={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "1.5rem",
+      background: "#0a0a0a",
+    }}>
+      <div style={{
+        width: "100%",
+        maxWidth: "420px",
+        position: "relative",
+      }}>
+        {/* Corner brackets */}
+        {[
+          { top: 0, left: 0, borderTop: "1px solid #FF6B00", borderLeft: "1px solid #FF6B00" },
+          { top: 0, right: 0, borderTop: "1px solid #FF6B00", borderRight: "1px solid #FF6B00" },
+          { bottom: 0, left: 0, borderBottom: "1px solid #FF6B00", borderLeft: "1px solid #FF6B00" },
+          { bottom: 0, right: 0, borderBottom: "1px solid #FF6B00", borderRight: "1px solid #FF6B00" },
+        ].map((c, i) => (
+          <div key={i} style={{
+            position: "absolute",
+            top: c.top,
+            right: c.right,
+            bottom: c.bottom,
+            left: c.left,
+            width: "20px",
+            height: "20px",
+            borderTop: c.borderTop,
+            borderBottom: c.borderBottom,
+            borderLeft: c.borderLeft,
+            borderRight: c.borderRight,
+            opacity: 0.7,
+            pointerEvents: "none",
+            zIndex: 2,
+          }} />
+        ))}
 
-        <input
-          type="text"
-          placeholder="Full name"
-          className="w-full rounded-xl px-3 py-2.5"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          maxLength={80}
-        />
-
-        <input
-          type="email"
-          required
-          placeholder="Email"
-          className="w-full rounded-xl px-3 py-2.5"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        <input
-          type="password"
-          required
-          placeholder="Password"
-          className="w-full rounded-xl px-3 py-2.5"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        <input
-          type="password"
-          required
-          placeholder="Confirm password"
-          className="w-full rounded-xl px-3 py-2.5"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-        />
-
-        <p className="text-xs text-gray-500">
-          Use at least 8 characters with letters and numbers.
-        </p>
-
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        {needsEmailVerification && (
-          <div className="text-sm rounded-lg border border-blue-200 bg-blue-50 text-blue-700 p-3 space-y-2">
-            <p>
-              Account created. Check your email and verify your account before logging in.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={handleResendVerification}
-                disabled={resendingVerification}
-                className="underline disabled:opacity-50"
-              >
-                {resendingVerification ? "Sending..." : "Resend verification email"}
-              </button>
-              <button
-                type="button"
-                onClick={() => router.push("/login?verify=1")}
-                className="underline"
-              >
-                Go to login
-              </button>
-            </div>
-            {verificationMessage ? <p>{verificationMessage}</p> : null}
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading || needsEmailVerification}
-          className="w-full rounded-xl bg-slate-900 text-white py-2.5 font-medium hover:bg-slate-800 disabled:opacity-60"
+        <form
+          onSubmit={handleSignup}
+          style={{
+            background: "#111111",
+            border: "1px solid #222222",
+            borderRadius: "4px",
+            padding: "2.5rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "1.25rem",
+          }}
         >
-          {loading ? "Creating..." : "Sign up"}
-        </button>
+          {/* Header */}
+          <div style={{ textAlign: "center", marginBottom: ".25rem" }}>
+            <div style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "3rem",
+              height: "3rem",
+              background: "#FF6B00",
+              color: "#000",
+              fontFamily: "'Bebas Neue', 'Arial Black', cursive",
+              fontSize: "1.5rem",
+              fontWeight: 900,
+              borderRadius: "3px",
+              boxShadow: "0 0 16px rgba(255, 107, 0, 0.5)",
+              marginBottom: ".75rem",
+            }}>H</div>
+            <h1 style={{
+              fontFamily: "'Bebas Neue', 'Arial Black', cursive",
+              fontSize: "2.2rem",
+              letterSpacing: ".08em",
+              margin: 0,
+              color: "#ffffff",
+            }}>CREATE ACCOUNT</h1>
+            <p style={{ color: "#888888", fontSize: ".85rem", marginTop: ".35rem" }}>
+              Get access to courses, jobs, and marketplace in one place.
+            </p>
+          </div>
 
-        <p className="text-center text-sm text-slate-600">
-          Already have an account? <Link href="/login" className="font-medium underline">Login</Link>
-        </p>
-      </form>
+          {/* Error message */}
+          {error && (
+            <div style={{
+              padding: ".65rem .9rem",
+              border: "1px solid rgba(255,0,80,.35)",
+              background: "rgba(255,0,80,.07)",
+              color: "#FF4466",
+              fontSize: ".82rem",
+              borderRadius: "3px",
+              fontFamily: "'Courier New', monospace",
+            }}>
+              ⚠ {error}
+            </div>
+          )}
+
+          {/* Email verification banner */}
+          {needsEmailVerification && (
+            <div style={{
+              padding: ".75rem .9rem",
+              border: "1px solid rgba(0,245,255,.25)",
+              background: "rgba(0,245,255,.06)",
+              color: "#00F5FF",
+              fontSize: ".82rem",
+              borderRadius: "3px",
+              fontFamily: "'Courier New', monospace",
+              display: "flex",
+              flexDirection: "column",
+              gap: ".5rem",
+            }}>
+              <p style={{ margin: 0 }}>
+                ✓ Account created. Check your email and verify before logging in.
+              </p>
+              <div style={{ display: "flex", gap: ".75rem", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={resendingVerification}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "#FF6B00",
+                    cursor: resendingVerification ? "not-allowed" : "pointer",
+                    fontSize: ".82rem",
+                    fontFamily: "'Bebas Neue', 'Arial Black', cursive",
+                    letterSpacing: ".05em",
+                    textDecoration: "underline",
+                    padding: 0,
+                    opacity: resendingVerification ? 0.5 : 1,
+                  }}
+                >
+                  {resendingVerification ? "SENDING..." : "RESEND VERIFICATION EMAIL"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push("/login?verify=1")}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "#FF6B00",
+                    cursor: "pointer",
+                    fontSize: ".82rem",
+                    fontFamily: "'Bebas Neue', 'Arial Black', cursive",
+                    letterSpacing: ".05em",
+                    textDecoration: "underline",
+                    padding: 0,
+                  }}
+                >
+                  GO TO LOGIN →
+                </button>
+              </div>
+              {verificationMessage && (
+                <p style={{ margin: 0, color: "#00FF88" }}>✓ {verificationMessage}</p>
+              )}
+            </div>
+          )}
+
+          {/* Full Name */}
+          <div style={{ display: "flex", flexDirection: "column", gap: ".4rem" }}>
+            <label style={labelStyle}>FULL NAME</label>
+            <input
+              type="text"
+              placeholder="Your full name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              maxLength={80}
+              style={inputStyle}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "#FF6B00")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2a2a")}
+            />
+          </div>
+
+          {/* Email */}
+          <div style={{ display: "flex", flexDirection: "column", gap: ".4rem" }}>
+            <label style={labelStyle}>EMAIL ADDRESS</label>
+            <input
+              type="email"
+              required
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={inputStyle}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "#FF6B00")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2a2a")}
+            />
+          </div>
+
+          {/* Password */}
+          <div style={{ display: "flex", flexDirection: "column", gap: ".4rem" }}>
+            <label style={labelStyle}>PASSWORD</label>
+            <input
+              type="password"
+              required
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={inputStyle}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "#FF6B00")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2a2a")}
+            />
+          </div>
+
+          {/* Confirm Password */}
+          <div style={{ display: "flex", flexDirection: "column", gap: ".4rem" }}>
+            <label style={labelStyle}>CONFIRM PASSWORD</label>
+            <input
+              type="password"
+              required
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              style={inputStyle}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "#FF6B00")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2a2a")}
+            />
+          </div>
+
+          <p style={{ fontSize: ".78rem", color: "#555555", fontFamily: "'Courier New', monospace", margin: "-.5rem 0 0" }}>
+            // Use at least 8 characters with letters and numbers.
+          </p>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={loading || needsEmailVerification}
+            style={{
+              width: "100%",
+              fontSize: "1.1rem",
+              padding: ".7rem",
+              background: loading || needsEmailVerification ? "#cc5500" : "#FF6B00",
+              color: "#000000",
+              border: "none",
+              borderRadius: "3px",
+              fontFamily: "'Bebas Neue', 'Arial Black', cursive",
+              letterSpacing: ".1em",
+              cursor: loading || needsEmailVerification ? "not-allowed" : "pointer",
+              opacity: loading || needsEmailVerification ? 0.6 : 1,
+              boxShadow: loading || needsEmailVerification ? "none" : "0 0 20px rgba(255, 107, 0, 0.35)",
+              transition: "all .2s",
+              marginTop: ".25rem",
+            }}
+          >
+            {loading ? "CREATING ACCOUNT..." : "JOIN THE HUSTLE →"}
+          </button>
+
+          {/* Footer link */}
+          <p style={{ textAlign: "center", fontSize: ".82rem", color: "#888888", marginTop: ".25rem" }}>
+            Already have an account?{" "}
+            <Link href="/login" style={{ color: "#FF6B00", textDecoration: "none", fontWeight: 600 }}>
+              Login →
+            </Link>
+          </p>
+        </form>
+      </div>
     </div>
   );
 }

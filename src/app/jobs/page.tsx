@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isProfileComplete } from "@/lib/profile/isProfileComplete";
 import ProfileHoverCard from "@/components/profile/ProfileHoverCard";
@@ -113,111 +112,162 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
   /* ================= RENDER ================= */
 
   return (
-    <main className="max-w-5xl mx-auto px-6 py-12 space-y-10">
-      <header className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Jobs</h1>
-
-          {user && profileComplete && (
-            <Link
-              href="/creator/jobs/new"
-              className="px-5 py-2.5 rounded-lg bg-black text-white"
-            >
-              Post Job
-            </Link>
-          )}
+    <main className="app-container" style={{ padding: "2.5rem 0 4rem" }}>
+      {/* Page header */}
+      <div style={{ marginBottom: "2rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: ".6rem", marginBottom: ".75rem" }}>
+          <div style={{ width: "24px", height: "2px", background: "var(--neon-orange)", boxShadow: "var(--glow-orange-sm)" }} />
+          <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: ".65rem", letterSpacing: ".2em", color: "var(--neon-orange)", textTransform: "uppercase" }}>
+            Opportunities
+          </span>
         </div>
+        <h1 className="page-title">JOBS <span style={{ color: "var(--neon-orange)", textShadow: "var(--glow-orange-sm)" }}>&amp; GIGS</span></h1>
+        <p className="page-subtitle">Find paid creator work. Apply in seconds. Build your reputation.</p>
+      </div>
 
-        <form className="grid gap-3 md:grid-cols-[1fr_180px_120px]">
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="Search jobs by title or requirement..."
-            className="w-full border rounded-lg px-3 py-2"
-          />
-          <select name="type" defaultValue={type} className="w-full border rounded-lg px-3 py-2">
-            <option value="all">All Types</option>
-            <option value="ugc">UGC</option>
-            <option value="clipping">Clipping</option>
-            <option value="editing">Editing</option>
-            <option value="other">Other</option>
-          </select>
-          <button className="rounded-lg bg-black text-white px-4 py-2">Search</button>
-        </form>
-      </header>
+      {/* Search/filter bar */}
+      <form style={{
+        display: "grid",
+        gridTemplateColumns: "1fr auto auto",
+        gap: ".5rem",
+        marginBottom: "2rem",
+      }}>
+        <input
+          name="q"
+          defaultValue={q}
+          placeholder="SEARCH JOBS..."
+          style={{
+            padding: ".6rem 1rem",
+            fontSize: ".85rem",
+            fontFamily: "var(--font-mono), monospace",
+            letterSpacing: ".05em",
+          }}
+        />
+        <select
+          name="type"
+          defaultValue={type}
+          style={{ padding: ".6rem .9rem", fontSize: ".85rem", cursor: "pointer" }}
+        >
+          <option value="all">ALL TYPES</option>
+          <option value="design">DESIGN</option>
+          <option value="writing">WRITING</option>
+          <option value="video">VIDEO</option>
+          <option value="tech">TECH</option>
+          <option value="marketing">MARKETING</option>
+          <option value="other">OTHER</option>
+        </select>
+        <button type="submit" className="btn-neon" style={{ fontSize: ".85rem" }}>
+          SEARCH
+        </button>
+      </form>
 
-      <section className="space-y-6">
-        {(!jobs || jobs.length === 0) && (
-          <div className="text-center py-20">
-            <p className="text-gray-400 text-lg">No jobs posted yet.</p>
-            <p className="text-gray-500 text-sm mt-2">Check back soon or post your own!</p>
-          </div>
-        )}
-        {jobs?.map((job) => {
-          const creator = profileMap[job.creator_id] ?? null;
+      {/* Jobs list */}
+      {jobs && jobs.length > 0 ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1px", border: "1px solid var(--line)", borderRadius: "4px", overflow: "hidden", background: "var(--line)" }}>
+          {jobs.map((job) => {
+            const creator = profileMap[job.creator_id] ?? null;
+            const parsedDescription = job.description ? parseJobDescription(job.description) : null;
+            return (
+              <div key={job.id} style={{
+                background: "var(--surface-strong)",
+                padding: "1.25rem 1.5rem",
+                display: "grid",
+                gridTemplateColumns: "1fr auto",
+                gap: "1rem",
+                alignItems: "start",
+                transition: "background 150ms ease",
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-hover)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "var(--surface-strong)")}
+              >
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: ".6rem", marginBottom: ".5rem", flexWrap: "wrap" }}>
+                    {job.type && (
+                      <span className="badge badge-orange">{job.type.toUpperCase()}</span>
+                    )}
+                    {job.budget && (
+                      <span className="badge badge-green">
+                        ₹{job.budget.toLocaleString()}
+                      </span>
+                    )}
+                    <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: ".62rem", color: "var(--text-2)", letterSpacing: ".05em" }}>
+                      {new Date(job.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                    </span>
+                  </div>
 
-          return (
-            <article
-              key={job.id}
-              className="border rounded-xl p-6 bg-white space-y-4"
-            >
-              {creator && (
-                <ProfileHoverCard
-                  username={creator.username ?? "anonymous"}
-                  fullName={creator.full_name}
-                  avatarUrl={creator.avatar_url}
-                  bio={creator.bio}
-                />
-              )}
+                  <h3 style={{
+                    fontFamily: "var(--font-display), cursive",
+                    fontSize: "1.4rem",
+                    letterSpacing: ".05em",
+                    margin: "0 0 .5rem",
+                    color: "var(--text-0)",
+                  }}>
+                    <a href={`/jobs/${job.id}`} style={{ textDecoration: "none", color: "inherit" }}
+                      onMouseEnter={e => ((e.target as HTMLElement).style.color = "var(--neon-orange)")}
+                      onMouseLeave={e => ((e.target as HTMLElement).style.color = "var(--text-0)")}
+                    >
+                      {job.title}
+                    </a>
+                  </h3>
 
-              <h2 className="text-lg font-semibold">
-                {job.title}
-              </h2>
+                  {parsedDescription?.overview && (
+                    <p style={{ color: "var(--text-1)", fontSize: ".85rem", lineHeight: 1.6, margin: "0 0 .75rem", maxWidth: "600px" }}>
+                      {parsedDescription.overview}
+                    </p>
+                  )}
 
-              <p className="text-sm text-gray-600">
-                {parseJobDescription(job.description).overview || "New opportunity posted by a creator."}
-              </p>
+                  {creator && (
+                    <ProfileHoverCard
+                      username={creator.username ?? "anonymous"}
+                      fullName={creator.full_name}
+                      avatarUrl={creator.avatar_url}
+                      bio={creator.bio}
+                    />
+                  )}
+                </div>
 
-              <div className="flex flex-wrap gap-2 text-xs">
-                <span className="px-2 py-1 rounded-full bg-gray-100 capitalize">
-                  {job.type ?? "other"}
-                </span>
-                <span className="px-2 py-1 rounded-full bg-gray-100">
-                  Budget: ₹{job.budget ?? 0}
-                </span>
+                <div style={{ display: "flex", flexDirection: "column", gap: ".5rem", alignItems: "flex-end", minWidth: "120px" }}>
+                  {job.is_open ? (
+                    user && profileComplete ? (
+                      <ApplyButton jobId={String(job.id)} />
+                    ) : user ? (
+                      <a href="/profile" className="btn-neon" style={{ fontSize: ".75rem", padding: ".35rem .8rem" }}>
+                        COMPLETE PROFILE
+                      </a>
+                    ) : (
+                      <a href="/login" className="btn-neon" style={{ fontSize: ".75rem", padding: ".35rem .8rem" }}>
+                        LOGIN TO APPLY
+                      </a>
+                    )
+                  ) : (
+                    <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: ".7rem", color: "var(--text-2)", letterSpacing: ".05em" }}>
+                      CLOSED
+                    </span>
+                  )}
+                  <a href={`/jobs/${job.id}`} className="btn-ghost" style={{ fontSize: ".75rem", padding: ".35rem .8rem" }}>
+                    VIEW DETAILS
+                  </a>
+                </div>
               </div>
-
-              <Link href={`/jobs/${job.id}`} className="text-sm underline">
-                View full details
-              </Link>
-
-              {job.is_open ? (
-                user && profileComplete ? (
-                  <ApplyButton jobId={String(job.id)} />
-                ) : user ? (
-                  <Link
-                    href="/profile"
-                    className="text-sm text-yellow-600"
-                  >
-                    Complete profile to apply
-                  </Link>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="text-sm text-blue-600"
-                  >
-                    Login to apply
-                  </Link>
-                )
-              ) : (
-                <span className="text-sm text-gray-400">
-                  Applications closed
-                </span>
-              )}
-            </article>
-          );
-        })}
-      </section>
+            );
+          })}
+        </div>
+      ) : (
+        <div style={{
+          textAlign: "center",
+          padding: "5rem 2rem",
+          border: "1px solid var(--line)",
+          borderRadius: "4px",
+          background: "var(--surface-strong)",
+        }}>
+          <div style={{ fontFamily: "var(--font-display), cursive", fontSize: "3rem", color: "var(--text-2)", letterSpacing: ".1em" }}>
+            NO JOBS FOUND
+          </div>
+          <p style={{ color: "var(--text-2)", marginTop: ".75rem", fontFamily: "var(--font-mono), monospace", fontSize: ".8rem", letterSpacing: ".05em" }}>
+            {q ? `NO RESULTS FOR "${q.toUpperCase()}"` : "CHECK BACK SOON — NEW GIGS DROP REGULARLY"}
+          </p>
+        </div>
+      )}
     </main>
   );
 }

@@ -1,80 +1,202 @@
 import Link from "next/link";
 
-export const dynamic = "force-dynamic"; 
-// 🔥 IMPORTANT: NEVER force-static when using auth in layout
+export const dynamic = "force-dynamic";
 
 export default function HomePage() {
   return (
-    <main className="space-y-16 pb-16">
-      <section className="app-container pt-10 md:pt-16">
-        <div className="app-surface rounded-3xl p-7 md:p-10 overflow-hidden relative">
-          <div className="absolute -right-8 -top-10 h-44 w-44 rounded-full bg-sky-200/45 blur-2xl" />
-          <div className="absolute -left-8 -bottom-14 h-44 w-44 rounded-full bg-emerald-200/45 blur-2xl" />
+    <main>
+      {/* ── HERO ──────────────────────────────────────────────── */}
+      <section style={{ position: "relative", overflow: "hidden", padding: "5rem 0 4rem" }}>
+        {/* decorative corner brackets */}
+        <div style={{ position: "absolute", top: "2rem", left: "2rem", width: "40px", height: "40px",
+          borderTop: "2px solid var(--neon-orange)", borderLeft: "2px solid var(--neon-orange)", opacity: .6 }} />
+        <div style={{ position: "absolute", top: "2rem", right: "2rem", width: "40px", height: "40px",
+          borderTop: "2px solid var(--neon-orange)", borderRight: "2px solid var(--neon-orange)", opacity: .6 }} />
+        <div style={{ position: "absolute", bottom: "2rem", left: "2rem", width: "40px", height: "40px",
+          borderBottom: "2px solid var(--neon-orange)", borderLeft: "2px solid var(--neon-orange)", opacity: .6 }} />
+        <div style={{ position: "absolute", bottom: "2rem", right: "2rem", width: "40px", height: "40px",
+          borderBottom: "2px solid var(--neon-orange)", borderRight: "2px solid var(--neon-orange)", opacity: .6 }} />
 
-          <div className="relative z-10 grid md:grid-cols-[1.4fr_1fr] gap-8 items-center">
-            <div>
-              <p className="inline-flex items-center rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700">
-                Creator commerce and career platform
-              </p>
-              <h1 className="mt-5 text-4xl md:text-6xl font-semibold font-[var(--font-display)] tracking-tight leading-[1.04]">
-                Learn. Earn. Build your creator income.
-              </h1>
-              <p className="mt-4 text-base md:text-lg text-slate-600 max-w-2xl">
-                HustleClub combines skill learning, paid opportunities, and a trusted marketplace in one simple workflow.
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/jobs" className="rounded-full bg-slate-900 px-5 py-2.5 text-white font-medium hover:bg-slate-800">
-                  Find paid jobs
-                </Link>
-                <Link href="/courses" className="rounded-full border border-slate-300 bg-white px-5 py-2.5 font-medium hover:bg-slate-50">
-                  Explore courses
-                </Link>
-                <Link href="/marketplace" className="rounded-full border border-slate-300 bg-white px-5 py-2.5 font-medium hover:bg-slate-50">
-                  Shop marketplace
-                </Link>
+        <div className="app-container" style={{ position: "relative", zIndex: 1 }}>
+          {/* eyebrow */}
+          <div style={{ display: "flex", alignItems: "center", gap: ".6rem", marginBottom: "1.5rem" }}>
+            <div style={{ width: "32px", height: "2px", background: "var(--neon-orange)", boxShadow: "var(--glow-orange-sm)" }} />
+            <span style={{
+              fontFamily: "var(--font-mono), monospace",
+              fontSize: ".7rem", letterSpacing: ".2em",
+              color: "var(--neon-orange)", textTransform: "uppercase",
+            }}>Creator Economy Platform · Est. 2024</span>
+          </div>
+
+          {/* main headline */}
+          <h1 style={{
+            fontFamily: "var(--font-display), 'Bebas Neue', cursive",
+            fontSize: "clamp(3.5rem, 10vw, 7.5rem)",
+            letterSpacing: ".04em",
+            lineHeight: 1,
+            margin: 0,
+            color: "var(--text-0)",
+          }}>
+            JOIN THE{" "}
+            <span style={{ color: "var(--neon-orange)", textShadow: "var(--glow-orange)" }}>HUSTLE.</span>
+            <br />
+            <span style={{ color: "var(--neon-cyan)", textShadow: "var(--glow-cyan)" }}>EARN</span>
+            {" "}YOUR WAY.
+          </h1>
+
+          <p style={{
+            maxWidth: "540px",
+            marginTop: "1.5rem",
+            fontSize: "1.05rem",
+            lineHeight: 1.7,
+            color: "var(--text-1)",
+          }}>
+            HustleClub is the underground creator economy — learn skills, land gigs, sell your work.
+            One platform. Three revenue channels. Zero gatekeepers.
+          </p>
+
+          {/* CTA buttons */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: ".75rem", marginTop: "2.5rem" }}>
+            <Link href="/jobs" className="btn-neon-solid" style={{ fontSize: "1.05rem", padding: ".65rem 1.8rem" }}>
+              ▶ FIND JOBS
+            </Link>
+            <Link href="/courses" className="btn-neon" style={{ fontSize: "1.05rem", padding: ".65rem 1.8rem" }}>
+              LEARN SKILLS
+            </Link>
+            <Link href="/marketplace" className="btn-ghost" style={{ fontSize: "1rem", padding: ".65rem 1.6rem" }}>
+              BROWSE MARKET →
+            </Link>
+          </div>
+
+          {/* stats row */}
+          <div style={{
+            display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "1px",
+            marginTop: "3.5rem",
+            maxWidth: "480px",
+            border: "1px solid var(--line)",
+            background: "var(--line)",
+            borderRadius: "4px",
+            overflow: "hidden",
+          }}>
+            {[
+              { value: "3", label: "Revenue Channels" },
+              { value: "∞", label: "Creator Potential" },
+              { value: "Live", label: "Deployed & Real" },
+            ].map(s => (
+              <div key={s.label} style={{
+                padding: "1rem 1.25rem",
+                background: "var(--surface-strong)",
+              }}>
+                <div className="stat-value">{s.value}</div>
+                <div className="stat-label" style={{ marginTop: ".25rem" }}>{s.label}</div>
               </div>
-            </div>
-
-            <div className="grid gap-3">
-              <InsightCard value="12+" label="End-to-end creator workflows" />
-              <InsightCard value="3" label="Revenue channels in one platform" />
-              <InsightCard value="Live" label="Role-based dashboards and analytics" />
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="app-container grid gap-5 md:grid-cols-3">
-        <FeatureCard
-          title="Courses"
-          description="Publish and learn practical creator skills with progress-aware dashboards."
-          href="/courses"
-          cta="Start learning"
-        />
-        <FeatureCard
-          title="Jobs"
-          description="Apply to creator gigs, track decisions, and manage hiring pipelines quickly."
-          href="/jobs"
-          cta="See opportunities"
-        />
-        <FeatureCard
-          title="Marketplace"
-          description="List products, place orders, and manage shipping with clear order states."
-          href="/marketplace"
-          cta="Browse items"
-        />
+      {/* divider */}
+      <div className="app-container"><div className="neon-divider" /></div>
+
+      {/* ── FEATURE CARDS ─────────────────────────────────────── */}
+      <section className="app-container" style={{ padding: "3.5rem 0" }}>
+        <div style={{ marginBottom: "2rem" }}>
+          <h2 style={{
+            fontFamily: "var(--font-display), cursive",
+            fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
+            letterSpacing: ".06em",
+            margin: 0,
+            color: "var(--text-0)",
+          }}>THREE WAYS TO <span style={{ color: "var(--neon-orange)", textShadow: "var(--glow-orange-sm)" }}>GET PAID</span></h2>
+          <p style={{ color: "var(--text-1)", marginTop: ".5rem", fontSize: ".95rem" }}>Pick your hustle. Stack your income.</p>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1px",
+          border: "1px solid var(--line)", borderRadius: "4px", overflow: "hidden", background: "var(--line)" }}>
+          <FeatureCard
+            tag="01"
+            title="COURSES"
+            description="Publish and sell your knowledge. Buyers enroll, learn, and level up — you get paid."
+            href="/courses"
+            cta="START LEARNING"
+            accentColor="var(--neon-orange)"
+            glowColor="var(--glow-orange-sm)"
+          />
+          <FeatureCard
+            tag="02"
+            title="JOBS"
+            description="Post or land creator gigs. Apply in seconds, track decisions, manage your pipeline."
+            href="/jobs"
+            cta="SEE OPPORTUNITIES"
+            accentColor="var(--neon-cyan)"
+            glowColor="var(--glow-cyan)"
+          />
+          <FeatureCard
+            tag="03"
+            title="MARKETPLACE"
+            description="Sell digital goods, templates, presets — anything. Instant delivery. Real orders."
+            href="/marketplace"
+            cta="BROWSE ITEMS"
+            accentColor="var(--neon-pink)"
+            glowColor="var(--glow-pink)"
+          />
+        </div>
       </section>
 
-      <section className="app-container">
-        <div className="rounded-2xl border border-slate-200 bg-white/85 p-6 md:p-8 shadow-sm">
-          <h2 className="text-2xl font-semibold font-[var(--font-display)]">Built for users, creators, and admins</h2>
-          <p className="mt-2 text-slate-600">
-            Users discover and buy. Creators publish and fulfill. Admins moderate and optimize with analytics.
+      {/* ── ROLE SECTION ──────────────────────────────────────── */}
+      <section className="app-container" style={{ padding: "0 0 4rem" }}>
+        <div style={{
+          border: "1px solid var(--line)",
+          background: "var(--surface-strong)",
+          borderRadius: "4px",
+          padding: "2rem 2.5rem",
+          position: "relative",
+          overflow: "hidden",
+        }}>
+          {/* accent line */}
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px",
+            background: "linear-gradient(90deg, var(--neon-orange), var(--neon-cyan), var(--neon-pink))",
+            opacity: .6 }} />
+
+          <h2 style={{
+            fontFamily: "var(--font-display), cursive",
+            fontSize: "clamp(1.5rem, 3.5vw, 2.2rem)",
+            letterSpacing: ".06em",
+            margin: "0 0 .4rem",
+          }}>
+            BUILT FOR EVERY <span style={{ color: "var(--neon-orange)", textShadow: "var(--glow-orange-sm)" }}>PLAYER</span>
+          </h2>
+          <p style={{ color: "var(--text-1)", fontSize: ".9rem", marginBottom: "1.5rem" }}>
+            Three roles. One ecosystem. Everyone eats.
           </p>
-          <div className="mt-5 grid sm:grid-cols-3 gap-3 text-sm">
-            <RoleChip title="User" detail="Enroll, apply, buy, track" />
-            <RoleChip title="Creator" detail="Publish, sell, analyze" />
-            <RoleChip title="Admin" detail="Moderate, approve, scale" />
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1px",
+            border: "1px solid var(--line)", borderRadius: "3px", overflow: "hidden", background: "var(--line)" }}>
+            <RoleCard
+              icon="👤"
+              title="USER"
+              detail="Enroll in courses, apply for jobs, buy from the marketplace."
+              color="var(--text-1)"
+            />
+            <RoleCard
+              icon="🎨"
+              title="CREATOR"
+              detail="Publish courses, post gigs, list goods. Get approved — then get paid."
+              color="var(--neon-cyan)"
+            />
+            <RoleCard
+              icon="⚡"
+              title="ADMIN"
+              detail="Approve creators, moderate content, track analytics, keep the platform clean."
+              color="var(--neon-pink)"
+            />
+          </div>
+
+          <div style={{ marginTop: "1.5rem" }}>
+            <Link href="/signup" className="btn-neon-solid">
+              CREATE YOUR ACCOUNT →
+            </Link>
           </div>
         </div>
       </section>
@@ -83,44 +205,63 @@ export default function HomePage() {
 }
 
 function FeatureCard({
-  title,
-  description,
-  href,
-  cta,
+  tag, title, description, href, cta, accentColor, glowColor,
 }: {
-  title: string;
-  description: string;
-  href: string;
-  cta: string;
+  tag: string; title: string; description: string;
+  href: string; cta: string; accentColor: string; glowColor: string;
 }) {
   return (
-    <Link
-      href={href}
-      className="app-card rounded-2xl p-6 transition block hover:-translate-y-0.5"
+    <Link href={href} style={{
+      display: "block", textDecoration: "none",
+      background: "var(--surface-strong)",
+      padding: "1.75rem",
+      transition: "background 200ms ease",
+    }}
+    onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-hover)")}
+    onMouseLeave={e => (e.currentTarget.style.background = "var(--surface-strong)")}
     >
-      <h3 className="font-semibold text-xl font-[var(--font-display)]">{title}</h3>
-      <p className="mt-2 text-slate-600 text-sm leading-relaxed">{description}</p>
-      <p className="mt-5 inline-flex rounded-full border border-slate-300 px-3 py-1 text-sm font-medium">
-        {cta}
+      <span style={{
+        fontFamily: "var(--font-mono), monospace",
+        fontSize: ".65rem", letterSpacing: ".15em",
+        color: accentColor, opacity: .7,
+      }}>{tag}</span>
+
+      <h3 style={{
+        fontFamily: "var(--font-display), cursive",
+        fontSize: "2rem", letterSpacing: ".08em",
+        color: accentColor,
+        textShadow: glowColor,
+        margin: ".4rem 0 .75rem",
+      }}>{title}</h3>
+
+      <p style={{ color: "var(--text-1)", fontSize: ".9rem", lineHeight: 1.65, margin: 0 }}>
+        {description}
       </p>
+
+      <span style={{
+        display: "inline-block", marginTop: "1.25rem",
+        fontFamily: "var(--font-display), cursive",
+        fontSize: ".85rem", letterSpacing: ".1em",
+        color: accentColor, opacity: .8,
+      }}>
+        {cta} →
+      </span>
     </Link>
   );
 }
 
-function InsightCard({ value, label }: { value: string; label: string }) {
+function RoleCard({ icon, title, detail, color }: { icon: string; title: string; detail: string; color: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <p className="text-2xl font-semibold font-[var(--font-display)]">{value}</p>
-      <p className="text-sm text-slate-600 mt-1">{label}</p>
-    </div>
-  );
-}
-
-function RoleChip({ title, detail }: { title: string; detail: string }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-      <p className="font-semibold">{title}</p>
-      <p className="text-slate-600 mt-0.5">{detail}</p>
+    <div style={{ padding: "1.25rem 1.5rem", background: "var(--surface-strong)" }}>
+      <div style={{ fontSize: "1.5rem", marginBottom: ".5rem" }}>{icon}</div>
+      <div style={{
+        fontFamily: "var(--font-display), cursive",
+        fontSize: "1.3rem", letterSpacing: ".1em",
+        color,
+      }}>{title}</div>
+      <p style={{ color: "var(--text-1)", fontSize: ".83rem", lineHeight: 1.6, margin: ".35rem 0 0" }}>
+        {detail}
+      </p>
     </div>
   );
 }

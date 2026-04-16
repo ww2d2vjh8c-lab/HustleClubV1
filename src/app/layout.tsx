@@ -1,16 +1,24 @@
 import "@/globals.css";
 import Navbar from "@/components/navigation/Navbar";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { Manrope, Sora } from "next/font/google";
+import { Bebas_Neue, Space_Grotesk, Space_Mono } from "next/font/google";
 
-const manrope = Manrope({
-  subsets: ["latin"],
-  variable: "--font-body",
-});
-
-const sora = Sora({
+const bebasNeue = Bebas_Neue({
+  weight: "400",
   subsets: ["latin"],
   variable: "--font-display",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-body",
+  weight: ["300", "400", "500", "600", "700"],
+});
+
+const spaceMono = Space_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400", "700"],
 });
 
 export default async function RootLayout({
@@ -56,8 +64,8 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en" className={`${manrope.variable} ${sora.variable}`}>
-      <body className="font-[var(--font-body)] antialiased text-slate-900">
+    <html lang="en" className={`${bebasNeue.variable} ${spaceGrotesk.variable} ${spaceMono.variable}`}>
+      <body className="font-[var(--font-body)] antialiased">
         <Navbar user={user} role={role} avatarUrl={avatarUrl} initials={initials} />
         <div className="pb-16">{children}</div>
       </body>
