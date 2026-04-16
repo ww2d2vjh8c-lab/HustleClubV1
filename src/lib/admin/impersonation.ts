@@ -1,15 +1,31 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { requireAdmin } from "@/lib/supabase/auth";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export const IMPERSONATE_COOKIE = "impersonate_user_id";
+const IMPERSONATE_COOKIE = "impersonate_user_id";
+
+// Standalone admin check — does NOT import from auth.ts to avoid circular dependency
+// (auth.ts imports getImpersonatedUserId from this file)
+async function assertAdmin() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role !== "admin") throw new Error("Admin access required");
+}
 
 export async function startImpersonation(targetUserId: string) {
-  await requireAdmin();
-
+  await assertAdmin();
   const cookieStore = await cookies();
-
   cookieStore.set(IMPERSONATE_COOKIE, targetUserId, {
     httpOnly: true,
     sameSite: "lax",
@@ -19,8 +35,7 @@ export async function startImpersonation(targetUserId: string) {
 }
 
 export async function stopImpersonation() {
-  await requireAdmin();
-
+  await assertAdmin();
   const cookieStore = await cookies();
   cookieStore.delete(IMPERSONATE_COOKIE);
 }
