@@ -1,259 +1,246 @@
-# HustleClub
+<p align="center">
+  <img src="https://img.shields.io/badge/Live-hustleclubv1.vercel.app-brightgreen?style=for-the-badge&logo=vercel" alt="Live Demo" />
+  <img src="https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript" />
+  <img src="https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js" />
+  <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase" />
+  <img src="https://img.shields.io/badge/Razorpay-FSM-02042B?style=for-the-badge&logo=razorpay" />
+  <img src="https://img.shields.io/badge/CI/CD-GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions" />
+</p>
 
-**A full-stack creator economy platform built for India.**
-Creators sell courses, post gig jobs, and list marketplace items. Users learn, apply, and buy — all in one place.
+<h1 align="center">HustleClub</h1>
+<p align="center"><strong>Full-stack creator economy marketplace — courses, gigs, and digital goods</strong></p>
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-hustleclub.vercel.app-5B2DE8?style=for-the-badge)](https://hustleclub.vercel.app)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
-
----
-
-## What it does
-
-HustleClub is a **multi-sided marketplace** with three revenue channels in one app:
-
-| Channel | Creator does | User does |
-|---|---|---|
-| **Courses** | Create + publish lessons | Enrol + learn |
-| **Gig Jobs** | Post UGC/freelance jobs | Apply + get hired |
-| **Marketplace** | List digital / thrift items | Browse + buy |
-
-Role system: `user` → `creator` (admin-approved) → `admin`
+<p align="center">
+  <a href="https://hustleclubv1.vercel.app"><strong>🚀 Live Demo → hustleclubv1.vercel.app</strong></a>
+</p>
 
 ---
 
-## Tech Stack
+## What is HustleClub?
 
-| Layer | Tech |
-|---|---|
-| Framework | Next.js 16 App Router (SSR + Server Actions) |
-| Language | TypeScript — 0 errors across full codebase |
-| UI | React 19 + Tailwind CSS 4 |
-| Database | Supabase PostgreSQL with Row Level Security |
-| Auth | Supabase Auth + `@supabase/ssr` (cookie-based SSR sessions) |
-| Storage | Supabase Storage (avatars + marketplace images) |
-| Realtime | Supabase Realtime channels (live notifications) |
-| Payments | Pluggable FSM — mock / Stripe / Razorpay via env var |
-| Testing | Vitest |
-| CI/CD | GitHub Actions → Vercel (staging + production pipelines) |
+HustleClub is a multi-sided creator marketplace where creators sell courses, freelance gigs, and digital goods — and buyers discover and purchase them. Built production-quality with real auth, real payments, and real CI/CD.
+
+**Three revenue streams in one platform:**
+
+| Stream | What it does |
+|--------|-------------|
+| 📚 Courses | Creators publish video/text courses; buyers enroll and learn |
+| 💼 Gig Jobs | Creators offer freelance services; clients browse and hire |
+| 🛒 Digital Goods | Creators sell files, templates, presets — instant download after payment |
+
+---
+
+## Try the Live Demo
+
+**URL:** https://hustleclubv1.vercel.app
+
+Sign up with any email, or use the test flow:
+1. Register as a **buyer** → browse courses and gigs
+2. Apply to become a **creator** (admin approves) → publish listings
+3. Test payment with Razorpay test card: `4111 1111 1111 1111` · Exp: any future date · CVV: any 3 digits
 
 ---
 
 ## Architecture
 
 ```
-HTTP Request
-  → middleware.ts          (Supabase session refresh on every request)
-  → RootLayout             (SSR: reads user + role → renders Navbar server-side)
-  → Page / Layout          (requireUser / requireCreator / requireAdmin guards)
-  → Server Action          (auth-gated, calls service layer)
-  → lib/payments/          (idempotent FSM, webhook deduplication)
-  → Supabase / PostgreSQL  (RLS as defense-in-depth)
+┌─────────────────────────────────────────────────────────┐
+│                    Next.js 16 App Router                 │
+│  ┌────────────────┐  ┌──────────────┐  ┌─────────────┐  │
+│  │  Server Actions │  │  Middleware  │  │  API Routes  │  │
+│  │  (mutations)    │  │  (auth SSR)  │  │  (webhooks)  │  │
+│  └────────────────┘  └──────────────┘  └─────────────┘  │
+└────────────────────────┬────────────────────────────────┘
+                         │
+            ┌────────────▼────────────┐
+            │      Supabase           │
+            │  ┌──────┐  ┌────────┐  │
+            │  │  DB   │  │  Auth  │  │
+            │  │  RLS  │  │  SSR   │  │
+            │  └──────┘  └────────┘  │
+            │  ┌──────┐  ┌────────┐  │
+            │  │  RT   │  │Storage │  │
+            │  └──────┘  └────────┘  │
+            └────────────────────────┘
+                         │
+            ┌────────────▼────────────┐
+            │      Razorpay FSM       │
+            │  created → authorized   │
+            │  → captured → refunded  │
+            └────────────────────────┘
 ```
-
-**Key architectural decisions:**
-
-- **Middleware session refresh** — Supabase SSR cookies refreshed on every request via `createServerClient` in `middleware.ts`. No silent session expiry.
-- **Defense-in-depth auth** — RLS at the DB layer + `requireUser/Creator/Admin` guards at the application layer. Both must pass.
-- **Idempotent payment FSM** — `sessionStorage` idempotency key prevents duplicate charges on retries. State machine (`created → processing → succeeded/failed`) makes all transitions explicit and testable.
-- **Webhook deduplication** — `payment_webhook_events.event_id` unique constraint blocks double-processing at the database level.
-- **Admin impersonation** — httpOnly cookie overlay; swaps `user.id` in all downstream queries. Full audit trail on every action.
 
 ---
 
-## Key Features
+## Key Technical Decisions
 
-### Payment System
-- Full state machine: `created → requires_action → processing → succeeded / failed / cancelled / refunded`
-- Idempotency key pattern (sessionStorage) — safe on retry, safe on double-click
-- Webhook signature validation, event deduplication via unique DB constraint
-- Optimistic concurrency: `UPDATE WHERE status = currentStatus` — prevents race conditions
-- Atomic item lock on purchase (`is_sold = true`)
-- Provider-agnostic: swap `PAYMENT_PROVIDER=razorpay` in env, zero code changes
+### Payment FSM with Idempotency
+Razorpay orders follow a strict state machine: `created → authorized → captured → refunded`. Every state transition is idempotent — if a webhook fires twice, the second call is a no-op. Prevents double-charges on network retries.
 
-### Admin Console
-- Platform analytics dashboard (users, creators, GMV, job counts)
-- Creator request queue with approve / reject
-- User role management with self-protection guard
-- **User impersonation** — admin views the platform as any user for debugging
-- Full audit log (actor, action, target, metadata, timestamp) via `logAudit()`
+```typescript
+// Webhook deduplication — idempotency key checked before processing
+const existing = await db.payment.findUnique({ where: { razorpayOrderId } });
+if (existing?.status === targetStatus) return; // already processed
+```
 
-### Security Hardening (post-audit)
-- Server-side input validation on all mutations (`validateUsername`, `validateBio`, etc.)
-- Marketplace storage RLS scoped to owner folder (`split_part(name, '/', 1) = auth.uid()::text`)
-- `updateApplicationStatus` requires creator ownership check — not just RLS
-- Webhook secret required in production; fails-closed if missing
+### Auth Architecture
+Supabase SSR sessions are refreshed on every request via Next.js middleware — no stale tokens. Row Level Security provides a second layer: even if application code has a bug, the database rejects unauthorized reads/writes.
 
-### Notifications
-- Role-aware feed (user / creator / admin see different events)
-- Supabase Realtime channel with proper `useEffect` cleanup on unmount
-- 60-second polling fallback
+```typescript
+// middleware.ts — runs on every request
+const { data: { session } } = await supabase.auth.getSession();
+if (!session && isProtectedRoute(req)) redirect('/login');
+```
+
+### Role-Based Access Control
+Three-tier role system enforced server-side:
+```
+user → (admin approves) → creator → (platform) → admin
+```
+Every protected route checks role via Server Action or API route — never trust the client.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router, SSR, Server Actions) |
+| Language | TypeScript — zero `any`, strict mode |
+| Database | PostgreSQL via Supabase |
+| Auth | Supabase Auth (SSR) + RLS |
+| Realtime | Supabase Realtime (notifications) |
+| Storage | Supabase Storage (digital goods, thumbnails) |
+| Payments | Razorpay (FSM, webhooks, idempotency) |
+| Hosting | Vercel (frontend) |
+| CI/CD | GitHub Actions → Vercel (staging + production) |
+| Testing | Vitest |
+
+---
+
+## Project Structure
+
+```
+hustleclub/
+├── app/
+│   ├── (auth)/           # Login, register, callback
+│   ├── (dashboard)/      # Creator dashboard
+│   ├── courses/          # Course listing + detail pages
+│   ├── gigs/             # Gig listing + detail pages
+│   ├── marketplace/      # Digital goods store
+│   └── api/
+│       └── webhooks/
+│           └── razorpay/ # Payment webhook handler
+├── components/
+│   ├── ui/               # Shared UI components
+│   ├── courses/          # Course-specific components
+│   └── payments/         # Checkout, payment status
+├── lib/
+│   ├── supabase/         # Client, server, middleware helpers
+│   ├── razorpay/         # FSM, webhook verification
+│   └── rbac/             # Role guards
+├── hooks/                # Custom React hooks
+├── types/                # TypeScript types + Supabase generated
+└── supabase/
+    └── migrations/       # Database schema migrations
+```
+
+---
+
+## Local Setup
+
+### Prerequisites
+- Node.js 18+
+- A [Supabase](https://supabase.com) project
+- A [Razorpay](https://razorpay.com) account (test mode is free)
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/ww2d2vjh8c-lab/HustleClubV1.git
+cd HustleClubV1
+npm install
+```
+
+### 2. Environment variables
+
+Create `.env.local`:
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Razorpay
+RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxx
+RAZORPAY_KEY_SECRET=your_secret
+RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
+
+# App
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+### 3. Database setup
+
+```bash
+# Apply migrations via Supabase CLI
+npx supabase db push
+```
+
+Or run the SQL in `supabase/migrations/` manually in the Supabase dashboard.
+
+### 4. Run
+
+```bash
+npm run dev
+# Open http://localhost:3000
+```
 
 ---
 
 ## CI/CD Pipeline
 
 ```
-Push any branch     → CI: lint + tsc --noEmit + vitest
-Open PR → main      → PR Checks: CI + Vercel preview URL + migration diff comment
-Merge to main       → Deploy → Staging: migrations + Vercel + /api/health smoke test
-Push tag v*.*.*     → Deploy → Production: manual approval gate + migrations + Vercel --prod + GitHub Release
-```
-
-Daily at 00:30 IST — Supabase Edge Function aggregates platform analytics into `analytics_daily_snapshots`.
-
----
-
-## Documentation
-
-| Doc | Contents |
-|---|---|
-| [`docs/AUDIT.md`](./docs/AUDIT.md) | 22-issue engineering audit — architecture, security, performance |
-| [`docs/EXECUTION-PLAN.md`](./docs/EXECUTION-PLAN.md) | Master fix plan — 20 microtasks, phases A–F, Claude Code execution commands |
-| [`docs/PIPELINE.md`](./docs/PIPELINE.md) | CI/CD setup guide, secrets reference, data pipeline docs |
-| [`docs/HustleClub-PRD.docx`](./docs/HustleClub-PRD.docx) | Product Requirements Document |
-| [`docs/HustleClub-TRD.docx`](./docs/HustleClub-TRD.docx) | Technical Requirements Document |
-
----
-
-## Local Setup
-
-```bash
-# 1. Clone and install
-git clone https://github.com/YOUR_USERNAME/HustleClubV1
-cd HustleClubV1
-npm install
-
-# 2. Set environment variables
-cp .env.example .env.local
-# Fill in your Supabase credentials (see below)
-
-# 3. Run migrations
-# Paste supabase/migrations/*.sql into Supabase SQL editor in order
-
-# 4. Start dev server
-npm run dev
-# → http://localhost:3000
-```
-
-### Environment Variables
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-PAYMENT_PROVIDER=mock
-PAYMENT_WEBHOOK_SECRET=any_string_for_local_dev
+Push to main branch
+      │
+      ▼
+GitHub Actions
+  ├── Type check (tsc --noEmit)
+  ├── Lint (eslint)
+  └── Test (vitest)
+      │
+      ▼ (if all pass)
+Vercel Deploy
+  ├── Preview URL (every PR)
+  └── Production (main branch)
 ```
 
 ---
 
-## Built by
+## Testing
 
-**Ayush Kaushik** · [coc123.1607@gmail.com](mailto:coc123.1607@gmail.com)
+```bash
+npm run test          # Run Vitest suite
+npm run test:watch    # Watch mode
+npm run type-check    # TypeScript validation
+```
 
 ---
 
-## 🔍 Inspect & Debug Locally
+## Contributing
 
-This section covers how to run, inspect, and test HustleClub on your local machine.
+1. Fork the repo
+2. Create a feature branch: `git checkout -b feat/your-feature`
+3. Make changes with tests
+4. Open a PR — CI runs automatically
 
-### 1. Clone & Run
+---
 
-```bash
-git clone https://github.com/ww2d2vjh8c-lab/HustleClubV1
-cd HustleClubV1
-npm install
-cp .env.example .env.local   # fill in Supabase credentials
-npm run dev                   # → http://localhost:3000
-```
+## License
 
-### 2. Environment Variables
+MIT — see [LICENSE](LICENSE)
 
-Create `.env.local` with:
+---
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-PAYMENT_PROVIDER=mock
-PAYMENT_WEBHOOK_SECRET=any_string_for_local_dev
-```
-
-Get credentials from: **Supabase Dashboard → Project Settings → API**
-
-### 3. Test User Roles
-
-Create separate accounts to test the full permission system:
-
-| Role | How to get it | What to test |
-|------|--------------|-------------- |
-| `user` | Sign up at `/auth/signup` | Enrol in courses, apply for jobs, buy from marketplace |
-| `creator` | User requests upgrade → admin approves it | Create courses, post gig jobs, list marketplace items |
-| `admin` | Run SQL: `UPDATE profiles SET role = 'admin' WHERE email = 'you@example.com'` | Creator approvals, analytics dashboard, user impersonation |
-
-### 4. Inspect with Browser DevTools (F12)
-
-Open **Chrome DevTools** while `npm run dev` is running:
-
-- **Network tab** — every Server Action fires as a `POST /` request. Click the request to inspect the exact payload and response — this shows you what each action receives and returns.
-- **Application → Cookies** — look for `sb-*` cookies. These are the Supabase SSR session tokens refreshed on every request by `middleware.ts`.
-- **Console** — Supabase Realtime events print here (watch live notification delivery). Payment FSM state transitions also log here.
-
-### 5. Attach Node.js DevTools (Debug Server-Side Code)
-
-```bash
-NODE_OPTIONS='--inspect' npm run dev
-```
-
-Then open **`chrome://inspect`** in a new tab → click *inspect* under Remote Target.
-
-This attaches Chrome DevTools to the Next.js server process. You can now:
-- Set breakpoints inside Server Actions
-- Step through `middleware.ts` on each request
-- Inspect the service layer and payment FSM in real time
-
-### 6. Test the Payment FSM
-
-`PAYMENT_PROVIDER=mock` simulates all payment states locally with no real credentials.
-
-To manually test webhook deduplication (the DB should process each `event_id` exactly once):
-
-```bash
-# Send a payment webhook
-curl -X POST http://localhost:3000/api/webhooks/payment \
-  -H "Content-Type: application/json" \
-  -H "x-webhook-secret: any_string_for_local_dev" \
-  -d '{"event_id":"test-123","type":"payment.succeeded","order_id":"YOUR_ORDER_ID"}'
-
-# Send the exact same request again
-# → should return 200 but NOT double-process
-curl -X POST http://localhost:3000/api/webhooks/payment \
-  -H "Content-Type: application/json" \
-  -H "x-webhook-secret: any_string_for_local_dev" \
-  -d '{"event_id":"test-123","type":"payment.succeeded","order_id":"YOUR_ORDER_ID"}'
-```
-
-Verify in Supabase SQL Editor: `SELECT * FROM payment_webhook_events WHERE event_id = 'test-123'` — should have exactly 1 row.
-
-### 7. Inspect the Database Live
-
-In your **Supabase Dashboard**:
-
-- **Table Editor** — browse `profiles`, `courses`, `orders`, `bills`, `notifications` live
-- **SQL Editor** — run queries like `SELECT * FROM profiles WHERE role = 'creator'`
-- **Logs → API** — see every SQL query your local session fires, with execution time
-- **Realtime settings** — enable the `notifications` table to watch rows appear in real time
-
-### 8. Run Tests & Type-Check
-
-```bash
-npm run test          # Vitest — unit and integration tests
-npm run test:watch    # Watch mode: reruns tests on every file save
-npx tsc --noEmit      # TypeScript check — should report 0 errors
-npm run lint          # ESLint
-```
+<p align="center">Built by <a href="https://github.com/ww2d2vjh8c-lab">Ayush Kaushik</a></p>
