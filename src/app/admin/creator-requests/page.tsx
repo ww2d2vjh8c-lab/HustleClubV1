@@ -20,12 +20,13 @@ type RequestRow = {
 export default async function CreatorRequestsPage({
   searchParams,
 }: {
-  searchParams: { status?: Status };
+  searchParams: Promise<{ status?: Status }>;
 }) {
   const { supabase } = await requireAdmin();
 
   /* ───────── FILTER ───────── */
-  const status: Status = searchParams?.status ?? "pending";
+  const { status: statusParam } = await searchParams;
+  const status: Status = statusParam ?? "pending";
 
   /* ───────── FETCH REQUESTS ───────── */
   const { data, error } = await supabase

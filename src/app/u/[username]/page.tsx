@@ -6,14 +6,15 @@ export const dynamic = "force-dynamic";
 export default async function PublicProfilePage({
   params,
 }: {
-  params: { username: string };
+  params: Promise<{ username: string }>;
 }) {
+  const { username } = await params;
   const supabase = await createSupabaseServerClient();
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("username, full_name, bio, avatar_url, role, is_verified")
-    .eq("username", params.username)
+    .eq("username", username)
     .single();
 
   if (!profile) {

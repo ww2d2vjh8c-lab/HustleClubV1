@@ -40,7 +40,6 @@ async function createCourse(formData: FormData) {
   });
 
   if (error) {
-    console.log("COURSE CREATE ERROR:", error);
     throw new Error("Failed to create course");
   }
 

@@ -81,7 +81,6 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
     .returns<JobRow[]>();
 
   if (error) {
-    console.log("JOBS LOAD ERROR:", error);
     return (
       <div className="max-w-4xl mx-auto p-6 text-red-500">
         Failed to load jobs.
@@ -148,6 +147,12 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
       </header>
 
       <section className="space-y-6">
+        {(!jobs || jobs.length === 0) && (
+          <div className="text-center py-20">
+            <p className="text-gray-400 text-lg">No jobs posted yet.</p>
+            <p className="text-gray-500 text-sm mt-2">Check back soon or post your own!</p>
+          </div>
+        )}
         {jobs?.map((job) => {
           const creator = profileMap[job.creator_id] ?? null;
 

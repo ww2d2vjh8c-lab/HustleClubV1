@@ -45,7 +45,6 @@ async function updateItem(formData: FormData) {
       .upload(fileName, file);
 
     if (uploadError) {
-      console.log("UPLOAD ERROR:", uploadError);
       throw new Error("Image upload failed");
     }
 
@@ -79,7 +78,6 @@ async function updateItem(formData: FormData) {
     .eq("seller_id", user.id);
 
   if (error) {
-    console.log("UPDATE ERROR:", error);
     throw new Error("Failed to update item");
   }
 

@@ -5,14 +5,19 @@ import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
+import UserMenu from "@/components/navigation/UserMenu";
 
 
 export default function Navbar({
   user,
   role,
+  avatarUrl,
+  initials,
 }: {
   user: User | null;
   role: Role;
+  avatarUrl?: string | null;
+  initials?: string;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -98,16 +103,10 @@ export default function Navbar({
 
           <div className="flex gap-2 text-sm items-center">
             {user ? (
-              <>
-                <Link href="/profile" onClick={() => setOpen(false)} className="rounded-full px-3 py-1.5 border border-slate-200 hover:bg-slate-50">
-                  Profile
-                </Link>
-                <form action="/signout" method="post">
-                  <button type="submit" className="rounded-full px-3 py-1.5 border border-rose-200 text-rose-700 hover:bg-rose-50">
-                    Sign out
-                  </button>
-                </form>
-              </>
+              <UserMenu
+                avatarUrl={avatarUrl ?? null}
+                initials={initials ?? "U"}
+              />
             ) : (
               <>
                 <Link href="/login" onClick={() => setOpen(false)} className="rounded-full px-3 py-1.5 border border-slate-200 hover:bg-slate-50">

@@ -45,7 +45,6 @@ export default async function NewJobPage() {
     });
 
     if (error) {
-      console.log("CREATE JOB ERROR:", error);
       throw new Error(error.message);
     }
 

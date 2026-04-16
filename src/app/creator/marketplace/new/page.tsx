@@ -38,7 +38,6 @@ async function createItem(formData: FormData) {
       .upload(fileName, file);
 
     if (uploadError) {
-      console.log("UPLOAD ERROR:", uploadError);
       throw new Error("Image upload failed");
     }
 
@@ -68,7 +67,6 @@ async function createItem(formData: FormData) {
     });
 
   if (error) {
-    console.log("CREATE ITEM ERROR:", error);
     throw new Error("Failed to create item");
   }
 

@@ -31,7 +31,7 @@ export default function PostItemButton() {
     const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/marketplace/${filePath}`;
 
     await supabase.from("marketplace_items").insert({
-      user_id: user.id,
+      seller_id: user.id,
       title,
       price: Number(price),
       image_url: imageUrl,

@@ -25,7 +25,7 @@ export default async function MyJobsPage() {
         job_applications(count)
       `
     )
-    .eq("created_by", user.id)
+    .eq("creator_id", user.id)
     .order("created_at", { ascending: false })
     .returns<JobRow[]>();
 

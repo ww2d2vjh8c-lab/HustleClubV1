@@ -7,8 +7,9 @@ export const dynamic = "force-dynamic";
 export default async function EditItemPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   // ✅ CORRECT: destructure
   const { user } = await requireUser();
   const supabase = await createSupabaseServerClient();
@@ -16,7 +17,7 @@ export default async function EditItemPage({
   const { data: item } = await supabase
     .from("marketplace_items")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("seller_id", user.id)
     .single();
 

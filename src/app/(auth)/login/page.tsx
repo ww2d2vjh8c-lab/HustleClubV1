@@ -3,11 +3,13 @@
 import { useState, useTransition } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function LoginPage() {
   const supabase = createSupabaseClient();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const [isPending, startTransition] = useTransition();
   const [email, setEmail] = useState("");
@@ -43,7 +45,7 @@ export default function LoginPage() {
         return;
       }
 
-      window.location.href = next || "/";
+      router.push(next || "/");
     });
   }
 

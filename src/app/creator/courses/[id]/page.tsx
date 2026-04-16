@@ -51,7 +51,6 @@ async function updateCourse(formData: FormData) {
       .upload(fileName, file);
 
     if (uploadError) {
-      console.log("UPLOAD ERROR:", uploadError);
       throw new Error("Image upload failed");
     }
 
@@ -86,7 +85,6 @@ async function updateCourse(formData: FormData) {
     .eq("creator_id", user.id);
 
   if (error) {
-    console.log("UPDATE ERROR:", error);
     throw new Error("Failed to update course");
   }
 

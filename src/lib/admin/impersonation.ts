@@ -14,6 +14,7 @@ export async function startImpersonation(targetUserId: string) {
     httpOnly: true,
     sameSite: "lax",
     path: "/",
+    secure: process.env.NODE_ENV === "production",
   });
 }
 

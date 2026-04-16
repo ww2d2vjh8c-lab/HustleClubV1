@@ -6,7 +6,7 @@ export default async function AdminListingsPage() {
   const { supabase } = await requireAdmin();
 
   const { data: listings, error } = await supabase
-    .from("listings")
+    .from("marketplace_items")
     .select("id, title, price, created_at")
     .order("created_at", { ascending: false });
 

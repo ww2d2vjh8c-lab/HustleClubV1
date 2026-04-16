@@ -57,7 +57,6 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
   const { data: items, error } = await query.returns<Item[]>();
 
   if (error) {
-    console.log("MARKETPLACE ERROR:", error);
     return (
       <div className="max-w-4xl mx-auto p-6 text-red-500">
         Failed to load marketplace.

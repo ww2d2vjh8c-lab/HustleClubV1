@@ -57,7 +57,6 @@ async function updateStatus(
     .eq("job_id", Number(jobId));
 
   if (error) {
-    console.log("STATUS UPDATE ERROR:", error);
     throw new Error("Failed to update status");
   }
 
@@ -123,7 +122,6 @@ export default async function ApplicationsPage({
     .returns<JobApplication[]>();
 
   if (error) {
-    console.log("APPLICATION LOAD ERROR:", error);
     return (
       <div className="max-w-4xl mx-auto p-6 text-red-500">
         Failed to load applications.

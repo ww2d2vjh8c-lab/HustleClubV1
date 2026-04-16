@@ -29,11 +29,11 @@ function normalizeStatus(status: string): Status {
 export default async function JobApplicantsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   await requireAdmin();
   const supabase = await createSupabaseServerClient();
-  const { id } = params;
+  const { id } = await params;
 
   const { data: job } = await supabase
     .from("jobs")
