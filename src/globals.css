@@ -423,7 +423,7 @@ body::after {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  border-radius: inherit;
+  border-radius: inherit; /* inherits from parent — works with both CSS and Tailwind radius classes */
   background-image:
     repeating-linear-gradient(
       0deg,
@@ -435,4 +435,5 @@ body::after {
     var(--grain-filter);
   background-repeat: repeat;
   opacity: 0.045;
+  /* Note: grain is suppressed on cards with overflow:hidden — intentional graceful degradation */
 }
