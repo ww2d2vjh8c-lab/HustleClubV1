@@ -437,3 +437,50 @@ body::after {
   opacity: 0.045;
   /* Note: grain is suppressed on cards with overflow:hidden — intentional graceful degradation */
 }
+
+/* ═══════════════════════════════════════════
+   ATMOSPHERIC TEXTURES — TIER 3 (HERO)
+   Max intensity. Opt in with .hero-texture.
+   Uses isolation:isolate so overlay is behind
+   the section's own content.
+═══════════════════════════════════════════ */
+
+.hero-texture {
+  position: relative;
+  isolation: isolate;
+}
+
+.hero-texture::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 1px,
+      rgba(0, 0, 0, 0.05) 1px,
+      rgba(0, 0, 0, 0.05) 2px
+    ),
+    var(--grain-filter);
+  background-repeat: repeat;
+  opacity: 0.07;
+}
+
+/* ═══════════════════════════════════════════
+   ATMOSPHERIC TEXTURES — ACCESSIBILITY
+   Respect prefers-reduced-motion. All overlays
+   are decorative — zero opacity removes them.
+═══════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  body::after,
+  .app-card::after,
+  .app-surface::after,
+  .hero-texture::after {
+    opacity: 0 !important;
+  }
+}
