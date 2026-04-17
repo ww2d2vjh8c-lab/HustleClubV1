@@ -39,7 +39,7 @@
 
   --shadow-card: 0 2px 20px rgba(0,0,0,.6);
   --shadow-raised: 0 8px 40px rgba(0,0,0,.8);
-  --grain-filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='hc-grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3C/svg%3E#hc-grain");
+  --grain-filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='hc-grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%2523hc-grain)'/%3E%3C/svg%3E");
 }
 
 /* ═══════════════════════════════════════════
