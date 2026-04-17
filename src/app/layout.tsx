@@ -65,7 +65,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={`${bebasNeue.variable} ${spaceGrotesk.variable} ${spaceMono.variable}`}>
-      <body className="font-[var(--font-body)] antialiased isolate">
+      <body className="font-[var(--font-body)] antialiased">
         <Navbar user={user} role={role} avatarUrl={avatarUrl} initials={initials} />
         <div className="pb-16">{children}</div>
       </body>

@@ -454,7 +454,7 @@ body::after {
   content: '';
   position: absolute;
   inset: 0;
-  z-index: -1;
+  z-index: -1; /* renders behind content but above page bg — do not add background-color to .hero-texture */
   pointer-events: none;
   background-image:
     repeating-linear-gradient(
