@@ -62,13 +62,23 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto p-6 text-red-500">
-        Failed to load courses.
-      </div>
+      <main className="app-container" style={{ paddingBottom: "4rem" }}>
+        <div style={{
+          textAlign: "center", padding: "5rem 2rem",
+          border: "1px solid var(--line)", borderRadius: "var(--radius)",
+          background: "var(--surface-strong)",
+        }}>
+          <div className="display" style={{ fontSize: "2rem", color: "var(--neon-pink)" }}>FAILED TO LOAD</div>
+          <p className="text-dim mono" style={{ fontSize: ".8rem", marginTop: ".75rem" }}>
+            Could not fetch courses — try again
+          </p>
+        </div>
+      </main>
     );
   }
 
-  const courseIds = courses?.map((course) => course.id) ?? [];
+  // ── Build enrollment map ─────────────────────────────────
+  const courseIds = courses?.map((c) => c.id) ?? [];
   const { data: enrollmentRows } = courseIds.length
     ? await supabase
         .from("course_enrollments")
@@ -84,48 +94,263 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
     {}
   );
 
-  return (
-    <main className="max-w-6xl mx-auto px-6 py-12 space-y-10">
-      <header>
-        <h1 className="text-3xl font-bold">Courses</h1>
-        <p className="text-gray-600 mt-2">
-          Learn real skills from creators.
-        </p>
-      </header>
+  // ── Determine featured course (highest enrollment) ───────
+  const list = courses ?? [];
+  let featuredCourse: Course | null = null;
+  let gridCourses: Course[] = list;
 
-      <form className="grid gap-3 md:grid-cols-[1fr_200px_120px]">
+  if (list.length > 0) {
+    const maxEnrollment = Math.max(...list.map((c) => enrollmentMap[c.id] ?? 0));
+    if (maxEnrollment > 0) {
+      const featuredIdx = list.findIndex(
+        (c) => (enrollmentMap[c.id] ?? 0) === maxEnrollment
+      );
+      featuredCourse = list[featuredIdx];
+      gridCourses = list.filter((_, i) => i !== featuredIdx);
+    }
+  }
+
+  return (
+    <main className="app-container" style={{ paddingBottom: "4rem" }}>
+
+      {/* ─── PAGE HEADER ────────────────────────────────────── */}
+      <div className="page-header">
+        <p className="section-tag" style={{ marginBottom: ".4rem" }}>Knowledge</p>
+        <h1 className="page-title">
+          THE <span className="accent-orange">COURSES</span>
+        </h1>
+        <p className="page-subtitle">Learn real skills from verified creators. Enroll in seconds.</p>
+      </div>
+
+      {/* ─── SEARCH BAR ─────────────────────────────────────── */}
+      <form style={{ display: "flex", gap: ".5rem", marginBottom: "1.75rem", flexWrap: "wrap" }}>
         <input
           name="q"
           defaultValue={q}
-          placeholder="Search courses, creators, keywords..."
-          className="w-full border rounded-lg px-3 py-2"
+          placeholder="Search courses, creators, topics..."
+          className="field-input"
+          style={{ flex: "1", minWidth: "200px" }}
         />
-        <select name="sort" defaultValue={sort} className="w-full border rounded-lg px-3 py-2">
+        <select
+          name="sort"
+          defaultValue={sort}
+          className="field-input"
+          style={{ width: "auto", minWidth: "160px", cursor: "pointer" }}
+        >
           <option value="newest">Newest</option>
-          <option value="price_low">Price: Low to High</option>
-          <option value="price_high">Price: High to Low</option>
+          <option value="price_low">Price: Low → High</option>
+          <option value="price_high">Price: High → Low</option>
         </select>
-        <button className="rounded-lg bg-black text-white px-4 py-2">Search</button>
+        <button type="submit" className="btn-neon">SEARCH</button>
       </form>
 
-      {!courses || courses.length === 0 ? (
-        <p className="text-gray-500">
-          No courses available yet.
-        </p>
-      ) : (
-        <section className="grid md:grid-cols-3 gap-6">
-          {courses.map((course) => (
-            <CourseCard
-              key={course.id}
-              course={course}
-              enrollmentCount={enrollmentMap[course.id] ?? 0}
-            />
-          ))}
-        </section>
+      {/* ─── EMPTY STATE ────────────────────────────────────── */}
+      {list.length === 0 && (
+        <div style={{
+          textAlign: "center", padding: "5rem 2rem",
+          border: "1px solid var(--line)", borderRadius: "var(--radius)",
+          background: "var(--surface-strong)",
+        }}>
+          <div className="display" style={{ fontSize: "2.5rem", color: "var(--text-2)", letterSpacing: ".08em" }}>
+            NO COURSES YET
+          </div>
+          <p className="text-dim mono" style={{ fontSize: ".8rem", letterSpacing: ".05em", marginTop: ".75rem" }}>
+            {q ? `No results for "${q}"` : "Check back soon — creators are building"}
+          </p>
+        </div>
       )}
+
+      {/* ─── FEATURED COURSE (most enrolled) ───────────────── */}
+      {featuredCourse && (
+        <>
+          <div style={{ marginBottom: ".65rem" }}>
+            <span className="mono text-dim" style={{ fontSize: ".6rem", letterSpacing: ".18em", textTransform: "uppercase" }}>
+              ⭐ Most enrolled
+            </span>
+          </div>
+          <FeaturedCourseCard
+            course={featuredCourse}
+            enrollmentCount={enrollmentMap[featuredCourse.id] ?? 0}
+          />
+        </>
+      )}
+
+      {/* ─── COURSE GRID ────────────────────────────────────── */}
+      {gridCourses.length > 0 && (
+        <>
+          <div style={{
+            marginTop: "1.5rem", marginBottom: ".65rem",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+          }}>
+            <span className="mono text-dim" style={{ fontSize: ".6rem", letterSpacing: ".18em", textTransform: "uppercase" }}>
+              All courses
+            </span>
+          </div>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+            gap: "1rem",
+          }}>
+            {gridCourses.map((course) => (
+              <CourseCard
+                key={course.id}
+                course={course}
+                enrollmentCount={enrollmentMap[course.id] ?? 0}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
     </main>
   );
 }
+
+// ── FEATURED WIDE CARD ──────────────────────────────────────
+
+function FeaturedCourseCard({
+  course,
+  enrollmentCount,
+}: {
+  course: Course;
+  enrollmentCount: number;
+}) {
+  const parsed = parseCourseDescription(course.description);
+  const summary = parsed.summary || "A comprehensive course to build real skills.";
+  const lessonCount = parsed.curriculum.length || parsed.whatYouWillLearn.length;
+  const outcomeCount = parsed.whatYouWillLearn.length;
+  const isFree = !course.price || Number(course.price) === 0;
+
+  return (
+    <Link
+      href={`/courses/${course.id}`}
+      className="app-card"
+      style={{
+        display: "flex",
+        overflow: "hidden",
+        textDecoration: "none",
+        borderTop: "2px solid var(--neon-orange)",
+        transition: "border-color 200ms, transform 180ms, box-shadow 200ms",
+      }}
+    >
+      {/* Left: image column */}
+      <div style={{
+        width: "220px",
+        flexShrink: 0,
+        background: "linear-gradient(135deg, #1a0800, var(--bg-1))",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "3rem",
+        borderRight: "1px solid var(--line)",
+        position: "relative",
+        overflow: "hidden",
+      }}>
+        {course.image_url ? (
+          <Image
+            src={course.image_url}
+            alt={course.title}
+            fill
+            style={{ objectFit: "cover" }}
+            sizes="220px"
+          />
+        ) : (
+          <span style={{ color: "var(--text-2)" }}>
+            {course.title.slice(0, 2).toUpperCase()}
+          </span>
+        )}
+      </div>
+
+      {/* Right: body */}
+      <div style={{
+        flex: 1,
+        padding: "1.25rem 1.5rem",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+      }}>
+        <div>
+          {/* Featured badge */}
+          <div style={{
+            display: "inline-flex", alignItems: "center",
+            fontFamily: "var(--font-mono), monospace",
+            fontSize: ".6rem", letterSpacing: ".1em", textTransform: "uppercase",
+            color: "var(--neon-orange)",
+            background: "rgba(255,102,0,.1)",
+            border: "1px solid rgba(255,102,0,.3)",
+            borderRadius: "3px",
+            padding: ".15rem .5rem",
+            marginBottom: ".6rem",
+          }}>
+            ★ Featured · {enrollmentCount} students
+          </div>
+
+          {/* Title */}
+          <h2 className="display" style={{
+            fontSize: "1.4rem", letterSpacing: ".04em",
+            color: "var(--text-0)", marginBottom: ".3rem",
+          }}>
+            {course.title}
+          </h2>
+
+          {/* Instructor link */}
+          {course.instructor && (
+            <Link
+              href={`/u/${course.instructor}`}
+              onClick={(e) => e.stopPropagation()}
+              style={{ fontSize: ".72rem", color: "var(--neon-orange)", textDecoration: "none" }}
+            >
+              @{course.instructor}
+            </Link>
+          )}
+
+          {/* Description */}
+          <p style={{
+            color: "var(--text-1)", fontSize: ".82rem", lineHeight: 1.6,
+            margin: ".5rem 0 .85rem",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical" as const,
+            overflow: "hidden",
+          }}>
+            {summary}
+          </p>
+
+          {/* Pills */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: ".35rem" }}>
+            {lessonCount > 0 && (
+              <span className="tag tag-muted">{lessonCount} lessons</span>
+            )}
+            {outcomeCount > 0 && (
+              <span className="tag tag-cyan">{outcomeCount} outcomes</span>
+            )}
+            <span className="tag tag-muted">Self-paced</span>
+          </div>
+        </div>
+
+        {/* Footer: price + CTA */}
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginTop: ".9rem" }}>
+          <span style={{
+            fontFamily: "var(--font-display), cursive",
+            fontSize: "1.3rem", letterSpacing: ".04em",
+            color: "var(--neon-green)",
+            textShadow: "0 0 8px rgba(0,232,122,.4)",
+          }}>
+            {isFree ? "FREE" : `₹${Number(course.price).toLocaleString()}`}
+          </span>
+          <span
+            className="btn-neon-solid btn-sm"
+            style={{ pointerEvents: "none" }}
+          >
+            ENROLL NOW →
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+// ── REGULAR COURSE CARD ─────────────────────────────────────
 
 function CourseCard({
   course,
@@ -134,44 +359,76 @@ function CourseCard({
   course: Course;
   enrollmentCount: number;
 }) {
-  const parsed = parseCourseDescription(course.description);
-  const summary = parsed.summary || "Learn practical skills with step-by-step guidance.";
   const isFree = !course.price || Number(course.price) === 0;
 
   return (
     <Link
       href={`/courses/${course.id}`}
-      className="border rounded-xl p-5 bg-white hover:shadow-md transition space-y-3"
+      className="app-card card-lift"
+      style={{ display: "block", overflow: "hidden", textDecoration: "none" }}
     >
-      {course.image_url && (
-        <div className="relative mb-2 h-40 bg-gray-100 rounded overflow-hidden">
+      {/* Image */}
+      <div style={{
+        width: "100%", aspectRatio: "16/9",
+        background: "var(--bg-1)", overflow: "hidden",
+        position: "relative", borderBottom: "1px solid var(--line)",
+      }}>
+        {course.image_url ? (
           <Image
             src={course.image_url}
             alt={course.title}
             fill
+            style={{ objectFit: "cover" }}
             sizes="(max-width: 768px) 100vw, 33vw"
-            className="object-cover"
           />
-        </div>
-      )}
-
-      <h2 className="font-semibold text-lg">{course.title}</h2>
-
-      {course.instructor && <p className="text-sm text-gray-500">By {course.instructor}</p>}
-
-      <p className="text-sm text-gray-600 line-clamp-3">{summary}</p>
-
-      <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span className="px-2 py-1 rounded-full bg-gray-100">
-          {isFree ? "Free" : `₹${course.price}`}
-        </span>
-        <span className="px-2 py-1 rounded-full bg-gray-100">{enrollmentCount} enrolled</span>
-        <span className="px-2 py-1 rounded-full bg-gray-100">
-          {parsed.whatYouWillLearn.length} outcomes
-        </span>
+        ) : (
+          <div className="display" style={{
+            width: "100%", height: "100%",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "2.5rem", color: "var(--text-2)",
+            background: "linear-gradient(135deg, var(--bg-1), var(--bg-2))",
+          }}>
+            {course.title.slice(0, 2).toUpperCase()}
+          </div>
+        )}
       </div>
 
-      <p className="text-sm font-medium">View course details →</p>
+      {/* Body */}
+      <div style={{ padding: ".85rem 1rem 1rem" }}>
+        <h3 className="display" style={{
+          fontSize: "1.05rem", letterSpacing: ".04em",
+          color: "var(--text-0)", marginBottom: ".25rem",
+        }}>
+          {course.title}
+        </h3>
+
+        {course.instructor && (
+          <Link
+            href={`/u/${course.instructor}`}
+            onClick={(e) => e.stopPropagation()}
+            style={{ fontSize: ".72rem", color: "var(--neon-orange)", textDecoration: "none" }}
+          >
+            @{course.instructor}
+          </Link>
+        )}
+
+        <div style={{
+          display: "flex", alignItems: "center",
+          justifyContent: "space-between", marginTop: ".65rem",
+        }}>
+          <span style={{
+            fontFamily: "var(--font-display), cursive",
+            fontSize: "1.1rem",
+            color: "var(--neon-green)",
+            textShadow: "0 0 8px rgba(0,232,122,.3)",
+          }}>
+            {isFree ? "FREE" : `₹${Number(course.price).toLocaleString()}`}
+          </span>
+          {enrollmentCount > 0 && (
+            <span className="tag tag-muted">{enrollmentCount} enrolled</span>
+          )}
+        </div>
+      </div>
     </Link>
   );
 }
