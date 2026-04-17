@@ -404,3 +404,35 @@ body::after {
   background-repeat: repeat;
   opacity: 0.028;
 }
+
+/* ═══════════════════════════════════════════
+   ATMOSPHERIC TEXTURES — TIER 2 (CARDS)
+   Denser grain + scanlines on card surfaces.
+   Combined in one background-image declaration.
+═══════════════════════════════════════════ */
+
+.app-card,
+.app-surface {
+  position: relative;
+}
+
+.app-card::after,
+.app-surface::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 1px,
+      rgba(0, 0, 0, 0.03) 1px,
+      rgba(0, 0, 0, 0.03) 2px
+    ),
+    var(--grain-filter);
+  background-repeat: repeat;
+  opacity: 0.045;
+}
