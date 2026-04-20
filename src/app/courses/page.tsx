@@ -16,15 +16,12 @@ type Course = {
 };
 
 type CoursesPageProps = {
-  searchParams?: {
-    q?: string;
-    sort?: string;
-  };
+  searchParams?: Promise<{ q?: string; sort?: string }>;
 };
 
 export default async function CoursesPage({ searchParams }: CoursesPageProps) {
   const supabase = await createSupabaseServerClient();
-  const { q: rawQ, sort: rawSort } = searchParams ?? {};
+  const { q: rawQ, sort: rawSort } = (await searchParams) ?? {};
   const q = rawQ?.trim() ?? "";
   const sort = rawSort ?? "newest";
 
@@ -295,13 +292,9 @@ function FeaturedCourseCard({
 
           {/* Instructor link */}
           {course.instructor && (
-            <Link
-              href={`/u/${course.instructor}`}
-              onClick={(e) => e.stopPropagation()}
-              style={{ fontSize: ".72rem", color: "var(--neon-orange)", textDecoration: "none" }}
-            >
+            <span style={{ fontSize: ".72rem", color: "var(--neon-orange)" }}>
               @{course.instructor}
-            </Link>
+            </span>
           )}
 
           {/* Description */}
@@ -403,13 +396,9 @@ function CourseCard({
         </h3>
 
         {course.instructor && (
-          <Link
-            href={`/u/${course.instructor}`}
-            onClick={(e) => e.stopPropagation()}
-            style={{ fontSize: ".72rem", color: "var(--neon-orange)", textDecoration: "none" }}
-          >
+          <span style={{ fontSize: ".72rem", color: "var(--neon-orange)" }}>
             @{course.instructor}
-          </Link>
+          </span>
         )}
 
         <div style={{

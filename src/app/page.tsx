@@ -510,7 +510,7 @@ function LiveFeedSection({
                   {/* Proof pills */}
                   <div style={{ display: "flex", flexWrap: "wrap", gap: ".3rem", marginBottom: ".5rem" }}>
                     {courseEnrollmentCount > 10 && (
-                      <span className="tag tag-muted">⭐ 4.9</span>
+                      <span className="tag tag-muted">🔥 Popular</span>
                     )}
                     {courseEnrollmentCount > 0 && (
                       <span className="tag tag-muted">👥 {courseEnrollmentCount} students</span>
