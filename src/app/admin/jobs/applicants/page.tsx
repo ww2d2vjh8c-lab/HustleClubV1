@@ -31,12 +31,13 @@ function normalizeStatus(status: string): ApplicationStatus {
 export default async function ApplicantsPage({
   searchParams,
 }: {
-  searchParams?: { job?: string; status?: ApplicationStatus | "all" };
+  searchParams?: Promise<{ job?: string; status?: ApplicationStatus | "all" }>;
 }) {
   await requireAdmin();
   const supabase = await createSupabaseServerClient();
-  const jobId = searchParams?.job;
-  const statusFilter = searchParams?.status ?? "all";
+  const { job, status } = (await searchParams) ?? {};
+  const jobId = job;
+  const statusFilter = status ?? "all";
 
   let query = supabase
     .from("job_applications")

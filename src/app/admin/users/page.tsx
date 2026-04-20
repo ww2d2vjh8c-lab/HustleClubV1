@@ -18,11 +18,12 @@ type UserRow = {
 export default async function AdminUsersPage({
   searchParams,
 }: {
-  searchParams?: { q?: string; role?: Role | "all" };
+  searchParams?: Promise<{ q?: string; role?: Role | "all" }>;
 }) {
   const { user: adminUser, supabase } = await requireAdmin();
-  const q = (searchParams?.q ?? "").trim();
-  const roleFilter = searchParams?.role ?? "all";
+  const { q: qRaw, role } = (await searchParams) ?? {};
+  const q = (qRaw ?? "").trim();
+  const roleFilter = role ?? "all";
 
   let query = supabase
     .from("profiles")
