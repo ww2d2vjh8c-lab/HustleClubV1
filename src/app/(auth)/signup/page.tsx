@@ -106,276 +106,193 @@ export default function SignupPage() {
     setResendingVerification(false);
   }
 
-  const inputStyle: React.CSSProperties = {
-    width: "100%",
-    padding: ".65rem .9rem",
-    fontSize: ".9rem",
-    background: "#0d0d0d",
-    border: "1px solid #2a2a2a",
-    borderRadius: "3px",
-    color: "#ffffff",
-    outline: "none",
-    boxSizing: "border-box",
-    fontFamily: "'Courier New', monospace",
-    transition: "border-color .2s",
-  };
-
-  const labelStyle: React.CSSProperties = {
-    fontSize: ".78rem",
-    letterSpacing: ".06em",
-    color: "#aaaaaa",
-    fontFamily: "'Bebas Neue', 'Arial Black', cursive",
-  };
-
   return (
     <div style={{
       minHeight: "100vh",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      padding: "1.5rem",
-      background: "#0a0a0a",
+      padding: "2rem 1rem",
     }}>
-      <div style={{
-        width: "100%",
-        maxWidth: "420px",
-        position: "relative",
-      }}>
-        {/* Corner brackets */}
-        {[
-          { top: 0, left: 0, borderTop: "1px solid #FF6B00", borderLeft: "1px solid #FF6B00" },
-          { top: 0, right: 0, borderTop: "1px solid #FF6B00", borderRight: "1px solid #FF6B00" },
-          { bottom: 0, left: 0, borderBottom: "1px solid #FF6B00", borderLeft: "1px solid #FF6B00" },
-          { bottom: 0, right: 0, borderBottom: "1px solid #FF6B00", borderRight: "1px solid #FF6B00" },
-        ].map((c, i) => (
-          <div key={i} style={{
-            position: "absolute",
-            top: c.top,
-            right: c.right,
-            bottom: c.bottom,
-            left: c.left,
-            width: "20px",
-            height: "20px",
-            borderTop: c.borderTop,
-            borderBottom: c.borderBottom,
-            borderLeft: c.borderLeft,
-            borderRight: c.borderRight,
-            opacity: 0.7,
-            pointerEvents: "none",
-            zIndex: 2,
-          }} />
-        ))}
+      <div style={{ width: "100%", maxWidth: "400px" }}>
+        {/* Brand mark */}
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <span style={{
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            width: "3rem", height: "3rem",
+            background: "var(--neon-orange)",
+            color: "#000",
+            fontFamily: "var(--font-display), cursive",
+            fontSize: "1.6rem", fontWeight: 900,
+            borderRadius: "6px",
+            boxShadow: "var(--glow-orange-sm)",
+          }}>H</span>
+        </div>
 
         <form
           onSubmit={handleSignup}
           style={{
-            background: "#111111",
-            border: "1px solid #222222",
-            borderRadius: "4px",
-            padding: "2.5rem",
-            display: "flex",
-            flexDirection: "column",
-            gap: "1.25rem",
+            background: "var(--surface-strong)",
+            border: "1px solid var(--line)",
+            borderRadius: "var(--radius)",
+            padding: "2rem",
           }}
         >
-          {/* Header */}
-          <div style={{ textAlign: "center", marginBottom: ".25rem" }}>
-            <div style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "3rem",
-              height: "3rem",
-              background: "#FF6B00",
-              color: "#000",
-              fontFamily: "'Bebas Neue', 'Arial Black', cursive",
-              fontSize: "1.5rem",
-              fontWeight: 900,
-              borderRadius: "3px",
-              boxShadow: "0 0 16px rgba(255, 107, 0, 0.5)",
-              marginBottom: ".75rem",
-            }}>H</div>
-            <h1 style={{
-              fontFamily: "'Bebas Neue', 'Arial Black', cursive",
-              fontSize: "2.2rem",
-              letterSpacing: ".08em",
-              margin: 0,
-              color: "#ffffff",
-            }}>CREATE ACCOUNT</h1>
-            <p style={{ color: "#888888", fontSize: ".85rem", marginTop: ".35rem" }}>
-              Get access to courses, jobs, and marketplace in one place.
-            </p>
-          </div>
+          <h1 style={{
+            fontFamily: "var(--font-display), cursive",
+            fontSize: "1.8rem",
+            letterSpacing: ".06em",
+            color: "var(--text-0)",
+            marginBottom: ".35rem",
+            textAlign: "center",
+          }}>
+            CREATE ACCOUNT
+          </h1>
+          <p style={{ textAlign: "center", color: "var(--text-1)", fontSize: ".85rem", marginBottom: "1.5rem" }}>
+            Join HustleClub for free
+          </p>
 
           {/* Error message */}
           {error && (
             <div style={{
-              padding: ".65rem .9rem",
-              border: "1px solid rgba(255,0,80,.35)",
-              background: "rgba(255,0,80,.07)",
-              color: "#FF4466",
+              padding: ".65rem .85rem",
+              background: "rgba(255,50,80,.07)",
+              border: "1px solid rgba(255,50,80,.25)",
+              borderRadius: "var(--radius-sm)",
+              color: "#FF5566",
               fontSize: ".82rem",
-              borderRadius: "3px",
-              fontFamily: "'Courier New', monospace",
+              marginBottom: "1rem",
+              fontFamily: "var(--font-mono), monospace",
             }}>
-              ⚠ {error}
+              {error}
             </div>
           )}
 
           {/* Email verification banner */}
           {needsEmailVerification && (
             <div style={{
-              padding: ".75rem .9rem",
-              border: "1px solid rgba(0,245,255,.25)",
-              background: "rgba(0,245,255,.06)",
-              color: "#00F5FF",
+              padding: ".75rem .85rem",
+              background: "rgba(0,238,255,.06)",
+              border: "1px solid rgba(0,238,255,.2)",
+              borderRadius: "var(--radius-sm)",
+              color: "var(--neon-cyan)",
               fontSize: ".82rem",
-              borderRadius: "3px",
-              fontFamily: "'Courier New', monospace",
+              marginBottom: "1rem",
+              fontFamily: "var(--font-mono), monospace",
               display: "flex",
               flexDirection: "column",
               gap: ".5rem",
             }}>
               <p style={{ margin: 0 }}>
-                ✓ Account created. Check your email and verify before logging in.
+                Account created. Check your email and verify before logging in.
               </p>
               <div style={{ display: "flex", gap: ".75rem", flexWrap: "wrap" }}>
                 <button
                   type="button"
                   onClick={handleResendVerification}
                   disabled={resendingVerification}
+                  className="btn-ghost"
                   style={{
-                    background: "transparent",
-                    border: "none",
-                    color: "#FF6B00",
-                    cursor: resendingVerification ? "not-allowed" : "pointer",
-                    fontSize: ".82rem",
-                    fontFamily: "'Bebas Neue', 'Arial Black', cursive",
-                    letterSpacing: ".05em",
-                    textDecoration: "underline",
                     padding: 0,
+                    fontSize: ".82rem",
                     opacity: resendingVerification ? 0.5 : 1,
+                    cursor: resendingVerification ? "not-allowed" : "pointer",
                   }}
                 >
-                  {resendingVerification ? "SENDING..." : "RESEND VERIFICATION EMAIL"}
+                  {resendingVerification ? "SENDING..." : "Resend verification email"}
                 </button>
                 <button
                   type="button"
                   onClick={() => router.push("/login?verify=1")}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    color: "#FF6B00",
-                    cursor: "pointer",
-                    fontSize: ".82rem",
-                    fontFamily: "'Bebas Neue', 'Arial Black', cursive",
-                    letterSpacing: ".05em",
-                    textDecoration: "underline",
-                    padding: 0,
-                  }}
+                  className="btn-ghost"
+                  style={{ padding: 0, fontSize: ".82rem" }}
                 >
-                  GO TO LOGIN →
+                  Go to login →
                 </button>
               </div>
               {verificationMessage && (
-                <p style={{ margin: 0, color: "#00FF88" }}>✓ {verificationMessage}</p>
+                <p style={{ margin: 0, color: "var(--neon-green)" }}>{verificationMessage}</p>
               )}
             </div>
           )}
 
-          {/* Full Name */}
-          <div style={{ display: "flex", flexDirection: "column", gap: ".4rem" }}>
-            <label style={labelStyle}>FULL NAME</label>
-            <input
-              type="text"
-              placeholder="Your full name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              maxLength={80}
-              style={inputStyle}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "#FF6B00")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2a2a")}
-            />
+          {/* Fields */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "1.25rem" }}>
+            <div>
+              <label className="field-label" htmlFor="fullName">Full name</label>
+              <input
+                id="fullName"
+                type="text"
+                placeholder="Your full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                maxLength={80}
+                className="field-input"
+              />
+            </div>
+            <div>
+              <label className="field-label" htmlFor="email">Email address</label>
+              <input
+                id="email"
+                type="email"
+                required
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="field-input"
+              />
+            </div>
+            <div>
+              <label className="field-label" htmlFor="password">Password</label>
+              <input
+                id="password"
+                type="password"
+                required
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="field-input"
+              />
+            </div>
+            <div>
+              <label className="field-label" htmlFor="confirmPassword">Confirm password</label>
+              <input
+                id="confirmPassword"
+                type="password"
+                required
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="field-input"
+              />
+            </div>
           </div>
 
-          {/* Email */}
-          <div style={{ display: "flex", flexDirection: "column", gap: ".4rem" }}>
-            <label style={labelStyle}>EMAIL ADDRESS</label>
-            <input
-              type="email"
-              required
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              style={inputStyle}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "#FF6B00")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2a2a")}
-            />
-          </div>
-
-          {/* Password */}
-          <div style={{ display: "flex", flexDirection: "column", gap: ".4rem" }}>
-            <label style={labelStyle}>PASSWORD</label>
-            <input
-              type="password"
-              required
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={inputStyle}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "#FF6B00")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2a2a")}
-            />
-          </div>
-
-          {/* Confirm Password */}
-          <div style={{ display: "flex", flexDirection: "column", gap: ".4rem" }}>
-            <label style={labelStyle}>CONFIRM PASSWORD</label>
-            <input
-              type="password"
-              required
-              placeholder="••••••••"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              style={inputStyle}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "#FF6B00")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2a2a")}
-            />
-          </div>
-
-          <p style={{ fontSize: ".78rem", color: "#555555", fontFamily: "'Courier New', monospace", margin: "-.5rem 0 0" }}>
-            // Use at least 8 characters with letters and numbers.
+          <p style={{ fontSize: ".78rem", color: "var(--text-2)", fontFamily: "var(--font-mono), monospace", marginBottom: "1.25rem" }}>
+            Use at least 8 characters with letters and numbers.
           </p>
 
           {/* Submit */}
           <button
             type="submit"
             disabled={loading || needsEmailVerification}
+            className="btn-neon-solid"
             style={{
               width: "100%",
-              fontSize: "1.1rem",
+              fontSize: "1rem",
               padding: ".7rem",
-              background: loading || needsEmailVerification ? "#cc5500" : "#FF6B00",
-              color: "#000000",
-              border: "none",
-              borderRadius: "3px",
-              fontFamily: "'Bebas Neue', 'Arial Black', cursive",
-              letterSpacing: ".1em",
+              opacity: loading || needsEmailVerification ? .6 : 1,
+              justifyContent: "center",
               cursor: loading || needsEmailVerification ? "not-allowed" : "pointer",
-              opacity: loading || needsEmailVerification ? 0.6 : 1,
-              boxShadow: loading || needsEmailVerification ? "none" : "0 0 20px rgba(255, 107, 0, 0.35)",
-              transition: "all .2s",
-              marginTop: ".25rem",
             }}
           >
-            {loading ? "CREATING ACCOUNT..." : "JOIN THE HUSTLE →"}
+            {loading ? "CREATING ACCOUNT..." : "CREATE ACCOUNT →"}
           </button>
 
-          {/* Footer link */}
-          <p style={{ textAlign: "center", fontSize: ".82rem", color: "#888888", marginTop: ".25rem" }}>
+          <p style={{ textAlign: "center", fontSize: ".82rem", color: "var(--text-1)", marginTop: "1.25rem" }}>
             Already have an account?{" "}
-            <Link href="/login" style={{ color: "#FF6B00", textDecoration: "none", fontWeight: 600 }}>
-              Login →
+            <Link href="/login" style={{ color: "var(--neon-orange)", fontWeight: 600 }}>
+              Sign in
             </Link>
           </p>
         </form>

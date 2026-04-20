@@ -81,236 +81,150 @@ export default function LoginPage() {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      padding: "1.5rem",
-      background: "#0a0a0a",
+      padding: "2rem 1rem",
     }}>
-      <div style={{
-        width: "100%",
-        maxWidth: "420px",
-        position: "relative",
-      }}>
-        {/* Corner brackets */}
-        {[
-          { top: 0, left: 0, borderTop: "1px solid #FF6B00", borderLeft: "1px solid #FF6B00" },
-          { top: 0, right: 0, borderTop: "1px solid #FF6B00", borderRight: "1px solid #FF6B00" },
-          { bottom: 0, left: 0, borderBottom: "1px solid #FF6B00", borderLeft: "1px solid #FF6B00" },
-          { bottom: 0, right: 0, borderBottom: "1px solid #FF6B00", borderRight: "1px solid #FF6B00" },
-        ].map((c, i) => (
-          <div key={i} style={{
-            position: "absolute",
-            top: c.top,
-            right: c.right,
-            bottom: c.bottom,
-            left: c.left,
-            width: "20px",
-            height: "20px",
-            borderTop: c.borderTop,
-            borderBottom: c.borderBottom,
-            borderLeft: c.borderLeft,
-            borderRight: c.borderRight,
-            opacity: 0.7,
-            pointerEvents: "none",
-            zIndex: 2,
-          }} />
-        ))}
+      <div style={{ width: "100%", maxWidth: "400px" }}>
+        {/* Brand mark */}
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <span style={{
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            width: "3rem", height: "3rem",
+            background: "var(--neon-orange)",
+            color: "#000",
+            fontFamily: "var(--font-display), cursive",
+            fontSize: "1.6rem", fontWeight: 900,
+            borderRadius: "6px",
+            boxShadow: "var(--glow-orange-sm)",
+          }}>H</span>
+        </div>
 
         <form
           onSubmit={handleLogin}
           style={{
-            background: "#111111",
-            border: "1px solid #222222",
-            borderRadius: "4px",
-            padding: "2.5rem",
-            display: "flex",
-            flexDirection: "column",
-            gap: "1.25rem",
+            background: "var(--surface-strong)",
+            border: "1px solid var(--line)",
+            borderRadius: "var(--radius)",
+            padding: "2rem",
           }}
         >
-          {/* Header */}
-          <div style={{ textAlign: "center", marginBottom: ".25rem" }}>
-            <div style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "3rem",
-              height: "3rem",
-              background: "#FF6B00",
-              color: "#000",
-              fontFamily: "'Bebas Neue', 'Arial Black', cursive",
-              fontSize: "1.5rem",
-              fontWeight: 900,
-              borderRadius: "3px",
-              boxShadow: "0 0 16px rgba(255, 107, 0, 0.5)",
-              marginBottom: ".75rem",
-            }}>H</div>
-            <h1 style={{
-              fontFamily: "'Bebas Neue', 'Arial Black', cursive",
-              fontSize: "2.2rem",
-              letterSpacing: ".08em",
-              margin: 0,
-              color: "#ffffff",
-            }}>WELCOME BACK</h1>
-            <p style={{ color: "#888888", fontSize: ".85rem", marginTop: ".35rem" }}>
-              Sign in to your HustleClub account
-            </p>
-          </div>
+          <h1 style={{
+            fontFamily: "var(--font-display), cursive",
+            fontSize: "1.8rem",
+            letterSpacing: ".06em",
+            color: "var(--text-0)",
+            marginBottom: ".35rem",
+            textAlign: "center",
+          }}>
+            WELCOME BACK
+          </h1>
+          <p style={{ textAlign: "center", color: "var(--text-1)", fontSize: ".85rem", marginBottom: "1.5rem" }}>
+            Sign in to your HustleClub account
+          </p>
 
           {/* Status messages */}
           {error && (
             <div style={{
-              padding: ".65rem .9rem",
-              border: "1px solid rgba(255,0,80,.35)",
-              background: "rgba(255,0,80,.07)",
-              color: "#FF4466",
+              padding: ".65rem .85rem",
+              background: "rgba(255,50,80,.07)",
+              border: "1px solid rgba(255,50,80,.25)",
+              borderRadius: "var(--radius-sm)",
+              color: "#FF5566",
               fontSize: ".82rem",
-              borderRadius: "3px",
-              fontFamily: "'Courier New', monospace",
+              marginBottom: "1rem",
+              fontFamily: "var(--font-mono), monospace",
             }}>
-              ⚠ {error}
+              {error}
             </div>
           )}
-
           {verifyHint === "1" && !error && (
             <div style={{
-              padding: ".65rem .9rem",
-              border: "1px solid rgba(0,245,255,.25)",
-              background: "rgba(0,245,255,.06)",
-              color: "#00F5FF",
+              padding: ".65rem .85rem",
+              background: "rgba(0,238,255,.06)",
+              border: "1px solid rgba(0,238,255,.2)",
+              borderRadius: "var(--radius-sm)",
+              color: "var(--neon-cyan)",
               fontSize: ".82rem",
-              borderRadius: "3px",
-              fontFamily: "'Courier New', monospace",
+              marginBottom: "1rem",
+              fontFamily: "var(--font-mono), monospace",
             }}>
-              ✓ Account created. Verify your email, then log in.
+              Account created — verify your email then log in.
             </div>
           )}
-
           {resendMessage && !error && (
             <div style={{
-              padding: ".65rem .9rem",
-              border: "1px solid rgba(0,255,136,.25)",
-              background: "rgba(0,255,136,.06)",
-              color: "#00FF88",
+              padding: ".65rem .85rem",
+              background: "rgba(0,232,122,.06)",
+              border: "1px solid rgba(0,232,122,.2)",
+              borderRadius: "var(--radius-sm)",
+              color: "var(--neon-green)",
               fontSize: ".82rem",
-              borderRadius: "3px",
-              fontFamily: "'Courier New', monospace",
+              marginBottom: "1rem",
+              fontFamily: "var(--font-mono), monospace",
             }}>
-              ✓ {resendMessage}
+              {resendMessage}
             </div>
           )}
 
           {/* Fields */}
-          <div style={{ display: "flex", flexDirection: "column", gap: ".4rem" }}>
-            <label htmlFor="email" style={{ fontSize: ".78rem", letterSpacing: ".06em", color: "#aaaaaa", fontFamily: "'Bebas Neue', 'Arial Black', cursive" }}>
-              EMAIL ADDRESS
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              style={{
-                width: "100%",
-                padding: ".65rem .9rem",
-                fontSize: ".9rem",
-                background: "#0d0d0d",
-                border: "1px solid #2a2a2a",
-                borderRadius: "3px",
-                color: "#ffffff",
-                outline: "none",
-                boxSizing: "border-box",
-                fontFamily: "'Courier New', monospace",
-                transition: "border-color .2s",
-              }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "#FF6B00")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2a2a")}
-            />
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "1.25rem" }}>
+            <div>
+              <label className="field-label" htmlFor="email">Email address</label>
+              <input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="field-input"
+              />
+            </div>
+            <div>
+              <label className="field-label" htmlFor="password">Password</label>
+              <input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="field-input"
+              />
+            </div>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: ".4rem" }}>
-            <label htmlFor="password" style={{ fontSize: ".78rem", letterSpacing: ".06em", color: "#aaaaaa", fontFamily: "'Bebas Neue', 'Arial Black', cursive" }}>
-              PASSWORD
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              style={{
-                width: "100%",
-                padding: ".65rem .9rem",
-                fontSize: ".9rem",
-                background: "#0d0d0d",
-                border: "1px solid #2a2a2a",
-                borderRadius: "3px",
-                color: "#ffffff",
-                outline: "none",
-                boxSizing: "border-box",
-                fontFamily: "'Courier New', monospace",
-                transition: "border-color .2s",
-              }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "#FF6B00")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2a2a")}
-            />
-          </div>
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={isPending}
+            className="btn-neon-solid"
+            style={{
+              width: "100%",
+              fontSize: "1rem",
+              padding: ".7rem",
+              opacity: isPending ? .6 : 1,
+              justifyContent: "center",
+            }}
+          >
+            {isPending ? "SIGNING IN..." : "SIGN IN →"}
+          </button>
 
-          {/* Buttons */}
-          <div style={{ display: "flex", flexDirection: "column", gap: ".65rem", marginTop: ".25rem" }}>
+          {canResendVerification && (
             <button
-              type="submit"
-              disabled={isPending}
-              style={{
-                width: "100%",
-                fontSize: "1.1rem",
-                padding: ".7rem",
-                background: isPending ? "#cc5500" : "#FF6B00",
-                color: "#000000",
-                border: "none",
-                borderRadius: "3px",
-                fontFamily: "'Bebas Neue', 'Arial Black', cursive",
-                letterSpacing: ".1em",
-                cursor: isPending ? "not-allowed" : "pointer",
-                opacity: isPending ? 0.6 : 1,
-                boxShadow: isPending ? "none" : "0 0 20px rgba(255, 107, 0, 0.35)",
-                transition: "all .2s",
-              }}
+              type="button"
+              onClick={handleResendVerification}
+              disabled={resendLoading}
+              className="btn-ghost"
+              style={{ width: "100%", marginTop: ".65rem", justifyContent: "center", fontSize: ".82rem" }}
             >
-              {isPending ? "AUTHENTICATING..." : "SIGN IN →"}
+              {resendLoading ? "SENDING..." : "Resend verification email"}
             </button>
+          )}
 
-            {canResendVerification && (
-              <button
-                type="button"
-                disabled={resendLoading}
-                onClick={handleResendVerification}
-                style={{
-                  width: "100%",
-                  fontSize: ".85rem",
-                  padding: ".65rem",
-                  background: "transparent",
-                  color: "#FF6B00",
-                  border: "1px solid #FF6B00",
-                  borderRadius: "3px",
-                  fontFamily: "'Bebas Neue', 'Arial Black', cursive",
-                  letterSpacing: ".08em",
-                  cursor: resendLoading ? "not-allowed" : "pointer",
-                  opacity: resendLoading ? 0.6 : 1,
-                  transition: "all .2s",
-                }}
-              >
-                {resendLoading ? "SENDING..." : "RESEND VERIFICATION EMAIL"}
-              </button>
-            )}
-          </div>
-
-          {/* Footer link */}
-          <p style={{ textAlign: "center", fontSize: ".82rem", color: "#888888", marginTop: ".25rem" }}>
+          <p style={{ textAlign: "center", fontSize: ".82rem", color: "var(--text-1)", marginTop: "1.25rem" }}>
             New to HustleClub?{" "}
-            <Link href="/signup" style={{ color: "#FF6B00", textDecoration: "none", fontWeight: 600 }}>
-              Create account →
+            <Link href="/signup" style={{ color: "var(--neon-orange)", fontWeight: 600 }}>
+              Create an account
             </Link>
           </p>
         </form>

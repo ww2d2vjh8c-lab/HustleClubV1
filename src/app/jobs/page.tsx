@@ -26,10 +26,7 @@ type ProfileRow = {
 };
 
 type JobsPageProps = {
-  searchParams?: {
-    q?: string;
-    type?: string;
-  };
+  searchParams?: Promise<{ q?: string; type?: string }>;
 };
 
 export default async function JobsPage({ searchParams }: JobsPageProps) {
@@ -42,7 +39,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
   const profileComplete = user
     ? await isProfileComplete(user.id)
     : false;
-  const { q: rawQ, type: rawType } = searchParams ?? {};
+  const { q: rawQ, type: rawType } = (await searchParams) ?? {};
   const q = rawQ?.trim() ?? "";
   const type = rawType ?? "all";
 
@@ -112,110 +109,111 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
   /* ================= RENDER ================= */
 
   return (
-    <main className="app-container" style={{ padding: "2.5rem 0 4rem" }}>
+    <main className="app-container" style={{ paddingBottom: "4rem" }}>
       {/* Page header */}
-      <div style={{ marginBottom: "2rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: ".6rem", marginBottom: ".75rem" }}>
-          <div style={{ width: "24px", height: "2px", background: "var(--neon-orange)", boxShadow: "var(--glow-orange-sm)" }} />
-          <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: ".65rem", letterSpacing: ".2em", color: "var(--neon-orange)", textTransform: "uppercase" }}>
-            Opportunities
-          </span>
+      <div className="page-header">
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
+          <div>
+            <p className="section-tag" style={{ marginBottom: ".4rem" }}>Opportunities</p>
+            <h1 className="page-title">
+              JOBS &amp; <span className="accent-orange">GIGS</span>
+            </h1>
+            <p className="page-subtitle">Find paid creator work. Apply in seconds.</p>
+          </div>
         </div>
-        <h1 className="page-title">JOBS <span style={{ color: "var(--neon-orange)", textShadow: "var(--glow-orange-sm)" }}>&amp; GIGS</span></h1>
-        <p className="page-subtitle">Find paid creator work. Apply in seconds. Build your reputation.</p>
       </div>
 
-      {/* Search/filter bar */}
-      <form style={{
-        display: "grid",
-        gridTemplateColumns: "1fr auto auto",
-        gap: ".5rem",
-        marginBottom: "2rem",
-      }}>
+      {/* Search bar */}
+      <form style={{ display: "flex", gap: ".5rem", marginBottom: "1.75rem", flexWrap: "wrap" }}>
         <input
           name="q"
           defaultValue={q}
-          placeholder="SEARCH JOBS..."
-          style={{
-            padding: ".6rem 1rem",
-            fontSize: ".85rem",
-            fontFamily: "var(--font-mono), monospace",
-            letterSpacing: ".05em",
-          }}
+          placeholder="Search jobs..."
+          className="field-input"
+          style={{ flex: "1", minWidth: "200px" }}
         />
         <select
           name="type"
           defaultValue={type}
-          style={{ padding: ".6rem .9rem", fontSize: ".85rem", cursor: "pointer" }}
+          className="field-input"
+          style={{ width: "auto", minWidth: "140px", cursor: "pointer" }}
         >
-          <option value="all">ALL TYPES</option>
-          <option value="design">DESIGN</option>
-          <option value="writing">WRITING</option>
-          <option value="video">VIDEO</option>
-          <option value="tech">TECH</option>
-          <option value="marketing">MARKETING</option>
-          <option value="other">OTHER</option>
+          <option value="all">All Types</option>
+          <option value="design">Design</option>
+          <option value="writing">Writing</option>
+          <option value="video">Video</option>
+          <option value="tech">Tech</option>
+          <option value="marketing">Marketing</option>
+          <option value="other">Other</option>
         </select>
-        <button type="submit" className="btn-neon" style={{ fontSize: ".85rem" }}>
-          SEARCH
-        </button>
+        <button type="submit" className="btn-neon">SEARCH</button>
       </form>
 
-      {/* Jobs list */}
+      {/* Job list */}
       {jobs && jobs.length > 0 ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1px", border: "1px solid var(--line)", borderRadius: "4px", overflow: "hidden", background: "var(--line)" }}>
-          {jobs.map((job) => {
+        <div style={{
+          border: "1px solid var(--line)",
+          borderRadius: "var(--radius)",
+          overflow: "hidden",
+        }}>
+          {jobs.map((job, i) => {
             const creator = profileMap[job.creator_id] ?? null;
             const parsedDescription = job.description ? parseJobDescription(job.description) : null;
             return (
-              <div key={job.id} style={{
-                background: "var(--surface-strong)",
-                padding: "1.25rem 1.5rem",
-                display: "grid",
-                gridTemplateColumns: "1fr auto",
-                gap: "1rem",
-                alignItems: "start",
-                transition: "background 150ms ease",
-              }}
-              onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-hover)")}
-              onMouseLeave={e => (e.currentTarget.style.background = "var(--surface-strong)")}
+              <div
+                key={job.id}
+                className="row-hover"
+                style={{
+                  padding: "1.25rem 1.5rem",
+                  borderBottom: i < jobs.length - 1 ? "1px solid var(--line)" : "none",
+                  background: "var(--surface-strong)",
+                  display: "grid",
+                  gridTemplateColumns: "1fr auto",
+                  gap: "1rem",
+                  alignItems: "start",
+                }}
               >
                 <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: ".6rem", marginBottom: ".5rem", flexWrap: "wrap" }}>
-                    {job.type && (
-                      <span className="badge badge-orange">{job.type.toUpperCase()}</span>
-                    )}
+                  {/* Meta row */}
+                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: ".4rem", marginBottom: ".5rem" }}>
+                    {job.type && <span className="tag tag-orange">{job.type}</span>}
                     {job.budget && (
-                      <span className="badge badge-green">
-                        ₹{job.budget.toLocaleString()}
-                      </span>
+                      <span className="tag tag-green">₹{job.budget.toLocaleString()}</span>
                     )}
-                    <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: ".62rem", color: "var(--text-2)", letterSpacing: ".05em" }}>
+                    <span className="mono text-dim" style={{ fontSize: ".68rem" }}>
                       {new Date(job.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                     </span>
                   </div>
 
-                  <h3 style={{
-                    fontFamily: "var(--font-display), cursive",
-                    fontSize: "1.4rem",
-                    letterSpacing: ".05em",
-                    margin: "0 0 .5rem",
-                    color: "var(--text-0)",
-                  }}>
-                    <a href={`/jobs/${job.id}`} style={{ textDecoration: "none", color: "inherit" }}
-                      onMouseEnter={e => ((e.target as HTMLElement).style.color = "var(--neon-orange)")}
-                      onMouseLeave={e => ((e.target as HTMLElement).style.color = "var(--text-0)")}
-                    >
-                      {job.title}
-                    </a>
-                  </h3>
+                  {/* Title */}
+                  <a
+                    href={`/jobs/${job.id}`}
+                    className="link-glow display"
+                    style={{
+                      display: "block",
+                      fontSize: "1.3rem",
+                      letterSpacing: ".04em",
+                      color: "var(--text-0)",
+                      marginBottom: ".45rem",
+                    }}
+                  >
+                    {job.title}
+                  </a>
 
+                  {/* Description preview */}
                   {parsedDescription?.overview && (
-                    <p style={{ color: "var(--text-1)", fontSize: ".85rem", lineHeight: 1.6, margin: "0 0 .75rem", maxWidth: "600px" }}>
+                    <p style={{
+                      color: "var(--text-1)",
+                      fontSize: ".85rem",
+                      lineHeight: 1.6,
+                      margin: "0 0 .65rem",
+                      maxWidth: "580px",
+                    }}>
                       {parsedDescription.overview}
                     </p>
                   )}
 
+                  {/* Creator */}
                   {creator && (
                     <ProfileHoverCard
                       username={creator.username ?? "anonymous"}
@@ -226,26 +224,25 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
                   )}
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: ".5rem", alignItems: "flex-end", minWidth: "120px" }}>
+                {/* Actions */}
+                <div style={{ display: "flex", flexDirection: "column", gap: ".5rem", alignItems: "flex-end", minWidth: "100px" }}>
                   {job.is_open ? (
                     user && profileComplete ? (
                       <ApplyButton jobId={String(job.id)} />
                     ) : user ? (
-                      <a href="/profile" className="btn-neon" style={{ fontSize: ".75rem", padding: ".35rem .8rem" }}>
+                      <a href="/profile" className="btn-neon btn-sm" style={{ fontSize: ".75rem" }}>
                         COMPLETE PROFILE
                       </a>
                     ) : (
-                      <a href="/login" className="btn-neon" style={{ fontSize: ".75rem", padding: ".35rem .8rem" }}>
+                      <a href="/login" className="btn-neon btn-sm" style={{ fontSize: ".75rem" }}>
                         LOGIN TO APPLY
                       </a>
                     )
                   ) : (
-                    <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: ".7rem", color: "var(--text-2)", letterSpacing: ".05em" }}>
-                      CLOSED
-                    </span>
+                    <span className="mono text-dim" style={{ fontSize: ".7rem" }}>CLOSED</span>
                   )}
-                  <a href={`/jobs/${job.id}`} className="btn-ghost" style={{ fontSize: ".75rem", padding: ".35rem .8rem" }}>
-                    VIEW DETAILS
+                  <a href={`/jobs/${job.id}`} className="btn-ghost btn-sm" style={{ fontSize: ".75rem" }}>
+                    Details →
                   </a>
                 </div>
               </div>
@@ -257,14 +254,14 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
           textAlign: "center",
           padding: "5rem 2rem",
           border: "1px solid var(--line)",
-          borderRadius: "4px",
+          borderRadius: "var(--radius)",
           background: "var(--surface-strong)",
         }}>
-          <div style={{ fontFamily: "var(--font-display), cursive", fontSize: "3rem", color: "var(--text-2)", letterSpacing: ".1em" }}>
+          <div className="display" style={{ fontSize: "2.5rem", color: "var(--text-2)", letterSpacing: ".08em" }}>
             NO JOBS FOUND
           </div>
-          <p style={{ color: "var(--text-2)", marginTop: ".75rem", fontFamily: "var(--font-mono), monospace", fontSize: ".8rem", letterSpacing: ".05em" }}>
-            {q ? `NO RESULTS FOR "${q.toUpperCase()}"` : "CHECK BACK SOON — NEW GIGS DROP REGULARLY"}
+          <p className="text-dim mono" style={{ fontSize: ".8rem", letterSpacing: ".05em", marginTop: ".75rem" }}>
+            {q ? `No results for "${q}"` : "Check back soon — new gigs drop regularly"}
           </p>
         </div>
       )}
