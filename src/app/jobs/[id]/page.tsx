@@ -69,9 +69,21 @@ export default async function JobDetailPage({
 
   if (error || !job) {
     return (
-      <div className="max-w-xl mx-auto p-6 text-red-500">
-        Job not found.
-      </div>
+      <main className="app-container" style={{ paddingBottom: "4rem" }}>
+        <div style={{
+          textAlign: "center", padding: "5rem 2rem",
+          border: "1px solid var(--line)", borderRadius: "var(--radius)",
+          background: "var(--surface-strong)", marginTop: "2rem",
+        }}>
+          <div className="display" style={{ fontSize: "2rem", color: "var(--text-2)" }}>JOB NOT FOUND</div>
+          <p className="mono" style={{ fontSize: ".75rem", color: "var(--text-2)", marginTop: ".75rem" }}>
+            This job may have been closed or removed.
+          </p>
+          <Link href="/jobs" className="btn-ghost" style={{ display: "inline-block", marginTop: "1.25rem" }}>
+            ← BACK TO JOBS
+          </Link>
+        </div>
+      </main>
     );
   }
 
@@ -147,87 +159,161 @@ export default async function JobDetailPage({
     .eq("job_id", job.id);
 
   return (
-    <main className="max-w-6xl mx-auto p-6 space-y-8">
-      <div className="grid lg:grid-cols-[1fr_320px] gap-8 items-start">
-        <section className="space-y-6">
+    <main className="app-container" style={{ paddingBottom: "5rem" }}>
+
+      {/* ── BACK LINK ── */}
+      <div style={{ marginBottom: "1.5rem", marginTop: "1rem" }}>
+        <Link href="/jobs" style={{
+          fontFamily: "var(--font-mono), monospace", fontSize: ".7rem",
+          letterSpacing: ".1em", color: "var(--text-2)", textDecoration: "none",
+        }}>
+          ← Back to Jobs
+        </Link>
+      </div>
+
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 300px",
+        gap: "2rem",
+        alignItems: "start",
+      }}>
+
+        {/* ── LEFT: JOB CONTENT ── */}
+        <section>
+          {/* Creator card */}
           {creator && (
-            <ProfileHoverCard
-              username={creator.username ?? "anonymous"}
-              fullName={creator.full_name}
-              avatarUrl={creator.avatar_url}
-              bio={creator.bio}
-            />
+            <div style={{ marginBottom: "1.25rem" }}>
+              <ProfileHoverCard
+                username={creator.username ?? "anonymous"}
+                fullName={creator.full_name}
+                avatarUrl={creator.avatar_url}
+                bio={creator.bio}
+              />
+            </div>
           )}
 
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold">{job.title}</h1>
-            <p className="text-sm text-gray-500">
-              Posted on {new Date(job.created_at).toLocaleDateString()}
+          {/* Title + meta */}
+          <div style={{ marginBottom: "1.5rem" }}>
+            <h1 className="display" style={{
+              fontSize: "clamp(1.5rem, 4vw, 2.2rem)", letterSpacing: ".04em",
+              color: "var(--text-0)", marginBottom: ".6rem", lineHeight: 1.2,
+            }}>
+              {job.title}
+            </h1>
+            <p className="mono" style={{ fontSize: ".65rem", color: "var(--text-2)", letterSpacing: ".1em", marginBottom: ".75rem" }}>
+              Posted {new Date(job.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
             </p>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className="px-2 py-1 rounded-full bg-gray-100 capitalize">
-                {job.type ?? "other"}
-              </span>
-              <span className="px-2 py-1 rounded-full bg-gray-100">
-                Budget: ₹{job.budget ?? 0}
-              </span>
-              <span className="px-2 py-1 rounded-full bg-gray-100">
-                {applicationCount ?? 0} applications
+            <div style={{ display: "flex", flexWrap: "wrap", gap: ".4rem" }}>
+              {job.type && <span className="tag tag-orange">{job.type.toUpperCase()}</span>}
+              {job.budget && <span className="tag tag-green">₹{job.budget.toLocaleString()}</span>}
+              <span className="tag tag-muted">{applicationCount ?? 0} applications</span>
+              <span className="tag tag-muted">{job.views ?? 0} views</span>
+              <span className="tag" style={{
+                background: job.is_open ? "rgba(0,232,122,.1)" : "rgba(255,0,153,.1)",
+                border: `1px solid ${job.is_open ? "rgba(0,232,122,.3)" : "rgba(255,0,153,.3)"}`,
+                color: job.is_open ? "var(--neon-green)" : "var(--neon-pink)",
+              }}>
+                {job.is_open ? "OPEN" : "CLOSED"}
               </span>
             </div>
           </div>
 
-          <p className="text-gray-700">{parsed.overview || "Open role with clear deliverables."}</p>
+          {/* Overview */}
+          {parsed.overview && (
+            <p style={{
+              color: "var(--text-1)", fontSize: ".95rem", lineHeight: 1.75,
+              marginBottom: "1.75rem", maxWidth: "640px",
+            }}>
+              {parsed.overview}
+            </p>
+          )}
 
-          <JobListSection title="Responsibilities" items={parsed.responsibilities} />
-          <JobListSection title="Requirements" items={parsed.requirements} />
-          <JobListSection title="Deliverables" items={parsed.deliverables} />
+          <JobSection title="Responsibilities" items={parsed.responsibilities} accentColor="var(--neon-orange)" />
+          <JobSection title="Requirements" items={parsed.requirements} accentColor="var(--neon-cyan)" />
+          <JobSection title="Deliverables" items={parsed.deliverables} accentColor="var(--neon-green)" />
 
+          {/* Timeline + Ideal Candidate */}
           {(parsed.timeline || parsed.idealCandidate) && (
-            <section className="grid md:grid-cols-2 gap-4">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.75rem" }}>
               {parsed.timeline && (
-                <div className="rounded-lg border p-4 bg-white">
-                  <p className="text-xs text-gray-500 uppercase">Timeline</p>
-                  <p className="mt-2 text-sm text-gray-700">{parsed.timeline}</p>
+                <div className="app-card" style={{ padding: "1rem" }}>
+                  <p className="mono" style={{ fontSize: ".58rem", letterSpacing: ".15em", color: "var(--text-2)", textTransform: "uppercase", marginBottom: ".4rem" }}>Timeline</p>
+                  <p style={{ fontSize: ".875rem", color: "var(--text-1)" }}>{parsed.timeline}</p>
                 </div>
               )}
               {parsed.idealCandidate && (
-                <div className="rounded-lg border p-4 bg-white">
-                  <p className="text-xs text-gray-500 uppercase">Ideal Candidate</p>
-                  <p className="mt-2 text-sm text-gray-700">{parsed.idealCandidate}</p>
+                <div className="app-card" style={{ padding: "1rem" }}>
+                  <p className="mono" style={{ fontSize: ".58rem", letterSpacing: ".15em", color: "var(--text-2)", textTransform: "uppercase", marginBottom: ".4rem" }}>Ideal Candidate</p>
+                  <p style={{ fontSize: ".875rem", color: "var(--text-1)" }}>{parsed.idealCandidate}</p>
                 </div>
               )}
-            </section>
+            </div>
           )}
         </section>
 
-        <aside className="rounded-xl border bg-white p-5 space-y-4 lg:sticky lg:top-24">
-          <p className="text-xs uppercase tracking-wide text-gray-500">Application</p>
-          <p className="text-2xl font-bold">₹{job.budget ?? 0}</p>
-          <ul className="text-sm text-gray-600 space-y-1">
-            <li>{job.views ?? 0} views</li>
-            <li>{applicationCount ?? 0} total applications</li>
-            <li>Status: {job.is_open ? "Open" : "Closed"}</li>
-          </ul>
+        {/* ── RIGHT: APPLY SIDEBAR ── */}
+        <aside style={{ position: "sticky", top: "80px" }}>
+          <div className="app-card" style={{ borderTop: "2px solid var(--neon-cyan)", padding: "1.5rem" }}>
+            <div style={{
+              fontFamily: "var(--font-mono), monospace", fontSize: ".58rem",
+              letterSpacing: ".15em", textTransform: "uppercase",
+              color: "var(--text-2)", marginBottom: ".5rem",
+            }}>
+              Budget
+            </div>
 
-          <div className="pt-2 space-y-3">
-            {!job.is_open && (
-              <span className="text-sm text-gray-400">Applications closed</span>
-            )}
+            <div style={{
+              fontFamily: "var(--font-display), cursive",
+              fontSize: "2rem", letterSpacing: ".04em",
+              color: "var(--neon-cyan)", marginBottom: ".25rem",
+              textShadow: "0 0 16px rgba(0,238,255,.3)",
+            }}>
+              ₹{job.budget?.toLocaleString() ?? "0"}
+            </div>
 
-            {job.is_open && user && profileComplete && <ApplyButton jobId={String(job.id)} />}
+            <div style={{ display: "flex", flexDirection: "column", gap: ".4rem", marginBottom: "1.25rem" }}>
+              {[
+                `${job.views ?? 0} views`,
+                `${applicationCount ?? 0} total applications`,
+                `Status: ${job.is_open ? "Open" : "Closed"}`,
+              ].map((f) => (
+                <div key={f} style={{ display: "flex", alignItems: "center", gap: ".5rem", fontSize: ".8rem", color: "var(--text-1)" }}>
+                  <span style={{ color: "var(--neon-cyan)", fontSize: ".65rem" }}>›</span>
+                  {f}
+                </div>
+              ))}
+            </div>
 
-            {job.is_open && user && !profileComplete && (
-              <Link href="/profile" className="text-yellow-600">
-                Complete profile to apply
-              </Link>
-            )}
+            <div style={{ display: "flex", flexDirection: "column", gap: ".6rem" }}>
+              {!job.is_open && (
+                <div style={{
+                  padding: ".6rem 1rem", borderRadius: "var(--radius-sm)", textAlign: "center",
+                  background: "rgba(255,0,153,.08)", border: "1px solid rgba(255,0,153,.25)",
+                  color: "var(--neon-pink)", fontFamily: "var(--font-mono), monospace",
+                  fontSize: ".72rem", letterSpacing: ".1em",
+                }}>
+                  APPLICATIONS CLOSED
+                </div>
+              )}
 
-            {job.is_open && !user && (
-              <Link href="/login" className="text-blue-600">
-                Login to apply
-              </Link>
-            )}
+              {job.is_open && user && profileComplete && <ApplyButton jobId={String(job.id)} />}
+
+              {job.is_open && user && !profileComplete && (
+                <Link href="/profile" className="btn-neon" style={{
+                  display: "block", textAlign: "center",
+                  borderColor: "var(--neon-orange)", color: "var(--neon-orange)",
+                  background: "rgba(255,102,0,.08)",
+                }}>
+                  COMPLETE PROFILE FIRST
+                </Link>
+              )}
+
+              {job.is_open && !user && (
+                <Link href="/login" className="btn-neon-solid" style={{ display: "block", textAlign: "center" }}>
+                  LOGIN TO APPLY →
+                </Link>
+              )}
+            </div>
           </div>
         </aside>
       </div>
@@ -235,19 +321,33 @@ export default async function JobDetailPage({
   );
 }
 
-function JobListSection({ title, items }: { title: string; items: string[] }) {
+function JobSection({ title, items, accentColor }: { title: string; items: string[]; accentColor: string }) {
   if (!items.length) return null;
-
   return (
-    <section className="space-y-2">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <ul className="space-y-2 text-gray-700">
-        {items.map((item, index) => (
-          <li key={`${title}-${index}`} className="rounded-lg border p-3 bg-white">
+    <section style={{ marginBottom: "1.75rem" }}>
+      <h2 style={{
+        fontFamily: "var(--font-display), cursive",
+        fontSize: "1.1rem", letterSpacing: ".06em",
+        color: "var(--text-0)", marginBottom: ".75rem",
+        paddingBottom: ".4rem", borderBottom: "1px solid var(--line)",
+      }}>
+        {title.toUpperCase()}
+      </h2>
+      <div style={{ display: "flex", flexDirection: "column", gap: ".4rem" }}>
+        {items.map((item, i) => (
+          <div key={i} style={{
+            display: "flex", alignItems: "flex-start", gap: ".6rem",
+            padding: ".6rem .8rem",
+            background: "var(--surface)",
+            border: "1px solid var(--line)",
+            borderRadius: "var(--radius-sm)",
+            fontSize: ".875rem", color: "var(--text-1)", lineHeight: 1.55,
+          }}>
+            <span style={{ color: accentColor, fontSize: ".65rem", marginTop: ".2rem", flexShrink: 0 }}>▸</span>
             {item}
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
     </section>
   );
 }

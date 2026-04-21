@@ -43,92 +43,183 @@ export default async function MarketplaceItemPage({
     : { data: null };
 
   return (
-    <main className="max-w-6xl mx-auto px-6 py-12 space-y-10">
-      <div className="grid lg:grid-cols-[1fr_320px] gap-8 items-start">
-        <section className="space-y-6">
-          <header className="space-y-2">
-            <h1 className="text-3xl font-bold">{item.title}</h1>
-            <p className="text-gray-500 text-sm">
-              Listed on {new Date(item.created_at).toLocaleDateString()}
-            </p>
-          </header>
+    <main className="app-container" style={{ paddingBottom: "5rem" }}>
 
+      {/* ── BACK LINK ── */}
+      <div style={{ marginBottom: "1.5rem", marginTop: "1rem" }}>
+        <Link href="/marketplace" style={{
+          fontFamily: "var(--font-mono), monospace", fontSize: ".7rem",
+          letterSpacing: ".1em", color: "var(--text-2)", textDecoration: "none",
+        }}>
+          ← Back to Market
+        </Link>
+      </div>
+
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 300px",
+        gap: "2rem",
+        alignItems: "start",
+      }}>
+
+        {/* ── LEFT: ITEM CONTENT ── */}
+        <section>
+          {/* Image */}
           {item.image_url && (
-            <div className="relative h-80 bg-gray-100 rounded-xl overflow-hidden">
+            <div style={{
+              position: "relative", width: "100%", height: "340px",
+              borderRadius: "var(--radius)", overflow: "hidden",
+              marginBottom: "1.75rem", border: "1px solid var(--line)",
+              background: "linear-gradient(135deg, #1a001a, var(--bg-1))",
+            }}>
               <Image
                 src={item.image_url}
                 alt={item.title}
                 fill
                 sizes="(max-width: 768px) 100vw, 896px"
-                className="object-cover"
+                style={{ objectFit: "cover" }}
               />
             </div>
           )}
 
-          <p className="text-gray-700">
-            {parsed.highlights || "Quality product listed by a verified community member."}
-          </p>
-
-          <MarketplaceSection title="Condition" content={parsed.conditionDetails} />
-          <MarketplaceListSection title="Specifications" items={parsed.specifications} />
-          <MarketplaceSection title="Shipping" content={parsed.shipping} />
-          <MarketplaceSection title="Why Selling" content={parsed.whySelling} />
-        </section>
-
-        <aside className="rounded-xl border bg-white p-5 space-y-4 lg:sticky lg:top-24">
-          <p className="text-xs uppercase tracking-wide text-gray-500">Price</p>
-          <p className="text-3xl font-bold">₹{item.price ?? 0}</p>
-
-          <div className="text-sm text-gray-600 space-y-1">
-            <p>
-              Seller: {seller?.full_name || seller?.username || "Community Seller"}
-              {seller?.is_verified ? " (Verified)" : ""}
+          {/* Title */}
+          <div style={{ marginBottom: "1.5rem" }}>
+            {seller && (
+              <span style={{ fontSize: ".72rem", color: "var(--neon-pink)", display: "block", marginBottom: ".35rem" }}>
+                {seller.username ? `@${seller.username}` : seller.full_name ?? "Seller"}
+                {seller.is_verified ? " ✓" : ""}
+              </span>
+            )}
+            <h1 className="display" style={{
+              fontSize: "clamp(1.5rem, 4vw, 2.2rem)", letterSpacing: ".04em",
+              color: "var(--text-0)", marginBottom: ".5rem", lineHeight: 1.2,
+            }}>
+              {item.title}
+            </h1>
+            <p className="mono" style={{ fontSize: ".65rem", color: "var(--text-2)", letterSpacing: ".1em" }}>
+              Listed {new Date(item.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
             </p>
-            <p>Secure order tracking</p>
-            <p>No self-purchase allowed</p>
           </div>
 
-          {!item.is_sold ? (
-            user ? (
+          {/* Description */}
+          {parsed.highlights && (
+            <p style={{
+              color: "var(--text-1)", fontSize: ".95rem", lineHeight: 1.75,
+              marginBottom: "1.75rem", maxWidth: "640px",
+            }}>
+              {parsed.highlights}
+            </p>
+          )}
+
+          <ItemTextSection title="Condition" content={parsed.conditionDetails} />
+          <ItemListSection title="Specifications" items={parsed.specifications} />
+          <ItemTextSection title="Shipping" content={parsed.shipping} />
+          <ItemTextSection title="Why Selling" content={parsed.whySelling} />
+        </section>
+
+        {/* ── RIGHT: BUY SIDEBAR ── */}
+        <aside style={{ position: "sticky", top: "80px" }}>
+          <div className="app-card" style={{ borderTop: "2px solid var(--neon-pink)", padding: "1.5rem" }}>
+            <div style={{
+              fontFamily: "var(--font-mono), monospace", fontSize: ".58rem",
+              letterSpacing: ".15em", textTransform: "uppercase",
+              color: "var(--text-2)", marginBottom: ".5rem",
+            }}>
+              Price
+            </div>
+
+            <div style={{
+              fontFamily: "var(--font-display), cursive",
+              fontSize: "2rem", letterSpacing: ".04em",
+              color: "var(--neon-pink)", marginBottom: ".25rem",
+              textShadow: "0 0 16px rgba(255,0,153,.3)",
+            }}>
+              ₹{item.price?.toLocaleString() ?? "0"}
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: ".4rem", marginBottom: "1.25rem" }}>
+              {[
+                `Seller: ${seller?.full_name ?? seller?.username ?? "Community Seller"}`,
+                "Secure order tracking",
+                "Instant delivery",
+              ].map((f) => (
+                <div key={f} style={{ display: "flex", alignItems: "center", gap: ".5rem", fontSize: ".8rem", color: "var(--text-1)" }}>
+                  <span style={{ color: "var(--neon-pink)", fontSize: ".65rem" }}>›</span>
+                  {f}
+                </div>
+              ))}
+            </div>
+
+            {item.is_sold ? (
+              <div style={{
+                padding: ".6rem 1rem", borderRadius: "var(--radius-sm)", textAlign: "center",
+                background: "rgba(255,0,153,.08)", border: "1px solid rgba(255,0,153,.25)",
+                color: "var(--neon-pink)", fontFamily: "var(--font-mono), monospace",
+                fontSize: ".72rem", letterSpacing: ".1em",
+              }}>
+                SOLD
+              </div>
+            ) : user ? (
               <BuyButton itemId={item.id} />
             ) : (
-              <Link href="/login" className="text-blue-600 font-medium">
-                Login to buy
+              <Link href="/login" className="btn-neon-solid" style={{
+                display: "block", textAlign: "center",
+                background: "rgba(255,0,153,.15)", borderColor: "var(--neon-pink)", color: "var(--neon-pink)",
+              }}>
+                LOGIN TO BUY →
               </Link>
-            )
-          ) : (
-            <div className="text-red-600 font-medium">
-              This item has been sold.
-            </div>
-          )}
+            )}
+          </div>
         </aside>
       </div>
     </main>
   );
 }
 
-function MarketplaceSection({ title, content }: { title: string; content: string }) {
+function ItemTextSection({ title, content }: { title: string; content: string }) {
   if (!content) return null;
   return (
-    <section className="space-y-1">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <p className="text-gray-700">{content}</p>
+    <section style={{ marginBottom: "1.5rem" }}>
+      <h2 style={{
+        fontFamily: "var(--font-display), cursive",
+        fontSize: "1.05rem", letterSpacing: ".06em",
+        color: "var(--text-0)", marginBottom: ".6rem",
+        paddingBottom: ".35rem", borderBottom: "1px solid var(--line)",
+      }}>
+        {title.toUpperCase()}
+      </h2>
+      <p style={{ fontSize: ".875rem", color: "var(--text-1)", lineHeight: 1.65 }}>{content}</p>
     </section>
   );
 }
 
-function MarketplaceListSection({ title, items }: { title: string; items: string[] }) {
+function ItemListSection({ title, items }: { title: string; items: string[] }) {
   if (!items.length) return null;
   return (
-    <section className="space-y-2">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <ul className="space-y-2">
-        {items.map((item, index) => (
-          <li key={`${title}-${index}`} className="border rounded-lg p-3 bg-white text-gray-700">
+    <section style={{ marginBottom: "1.5rem" }}>
+      <h2 style={{
+        fontFamily: "var(--font-display), cursive",
+        fontSize: "1.05rem", letterSpacing: ".06em",
+        color: "var(--text-0)", marginBottom: ".6rem",
+        paddingBottom: ".35rem", borderBottom: "1px solid var(--line)",
+      }}>
+        {title.toUpperCase()}
+      </h2>
+      <div style={{ display: "flex", flexDirection: "column", gap: ".4rem" }}>
+        {items.map((item, i) => (
+          <div key={i} style={{
+            display: "flex", alignItems: "flex-start", gap: ".6rem",
+            padding: ".6rem .8rem",
+            background: "var(--surface)",
+            border: "1px solid var(--line)",
+            borderRadius: "var(--radius-sm)",
+            fontSize: ".875rem", color: "var(--text-1)", lineHeight: 1.55,
+          }}>
+            <span style={{ color: "var(--neon-pink)", fontSize: ".65rem", marginTop: ".2rem", flexShrink: 0 }}>▸</span>
             {item}
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
     </section>
   );
 }
