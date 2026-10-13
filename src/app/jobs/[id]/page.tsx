@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isProfileComplete } from "@/lib/profile/isProfileComplete";
-import ProfileHoverCard from "@/components/profile/ProfileHoverCard";
 import ApplyButton from "@/components/jobs/ApplyButton";
 import { headers } from "next/headers";
 import { parseJobDescription } from "@/lib/content/richContent";
