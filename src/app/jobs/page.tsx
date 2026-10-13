@@ -1,3 +1,4 @@
+import SampleShowcase from "@/components/ui/SampleShowcase";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isProfileComplete } from "@/lib/profile/isProfileComplete";
 import ProfileHoverCard from "@/components/profile/ProfileHoverCard";
@@ -76,13 +77,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
     .order("created_at", { ascending: false })
     .returns<JobRow[]>();
 
-  if (error) {
-    return (
-      <div className="max-w-4xl mx-auto p-6 text-red-500">
-        Failed to load jobs.
-      </div>
-    );
-  }
+  const loadFailed = Boolean(error);
 
   /* ================= FETCH PROFILES ================= */
 
@@ -249,6 +244,8 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
             );
           })}
         </div>
+      ) : !q && type === "all" ? (
+        <SampleShowcase kind="jobs" reason={loadFailed ? "error" : "empty"} />
       ) : (
         <div style={{
           textAlign: "center",
@@ -261,7 +258,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
             NO JOBS FOUND
           </div>
           <p className="text-dim mono" style={{ fontSize: ".8rem", letterSpacing: ".05em", marginTop: ".75rem" }}>
-            {q ? `No results for "${q}"` : "Check back soon — new gigs drop regularly"}
+            {q ? `No results for "${q}"` : "No jobs of this type yet"}
           </p>
         </div>
       )}
