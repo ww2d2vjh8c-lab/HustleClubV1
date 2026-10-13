@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/supabase/auth";
+import { requireAdmin } from "@/lib/auth";
 import { toggleJobStatus, deleteJob } from "./actions";
 
 export const dynamic = "force-dynamic";

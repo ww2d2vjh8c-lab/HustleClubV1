@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/supabase/auth";
+import { requireAdmin } from "@/lib/auth";
 import { setOrderStatus } from "./actions";
 
 export const dynamic = "force-dynamic";

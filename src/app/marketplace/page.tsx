@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Image from "next/image";
+import SampleShowcase from "@/components/ui/SampleShowcase";
 import { parseMarketplaceDescription } from "@/lib/content/richContent";
 
 export const dynamic = "force-dynamic";
@@ -53,13 +54,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
 
   const { data: items, error } = await query.returns<Item[]>();
 
-  if (error) {
-    return (
-      <div className="max-w-4xl mx-auto p-6 text-red-500">
-        Failed to load marketplace.
-      </div>
-    );
-  }
+  const loadFailed = Boolean(error);
 
   return (
     <main className="app-container" style={{ paddingBottom: "4rem" }}>
@@ -185,6 +180,8 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
             </a>
           ))}
         </div>
+      ) : !q ? (
+        <SampleShowcase kind="marketplace" reason={loadFailed ? "error" : "empty"} />
       ) : (
         <div style={{
           textAlign: "center",
@@ -197,7 +194,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
             NOTHING HERE YET
           </div>
           <p className="text-dim mono" style={{ fontSize: ".8rem", letterSpacing: ".05em", marginTop: ".75rem" }}>
-            {q ? `No results for "${q}"` : "The market is empty — be the first to list"}
+            No results for &quot;{q}&quot;
           </p>
         </div>
       )}

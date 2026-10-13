@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import Image from "next/image";
+import SampleShowcase from "@/components/ui/SampleShowcase";
 import { parseCourseDescription } from "@/lib/content/richContent";
 
 export const dynamic = "force-dynamic";
@@ -57,22 +58,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
 
   const { data: courses, error } = await query.returns<Course[]>();
 
-  if (error) {
-    return (
-      <main className="app-container" style={{ paddingBottom: "4rem" }}>
-        <div style={{
-          textAlign: "center", padding: "5rem 2rem",
-          border: "1px solid var(--line)", borderRadius: "var(--radius)",
-          background: "var(--surface-strong)",
-        }}>
-          <div className="display" style={{ fontSize: "2rem", color: "var(--neon-pink)" }}>FAILED TO LOAD</div>
-          <p className="text-dim mono" style={{ fontSize: ".8rem", marginTop: ".75rem" }}>
-            Could not fetch courses — try again
-          </p>
-        </div>
-      </main>
-    );
-  }
+  const loadFailed = Boolean(error);
 
   // ── Build enrollment map ─────────────────────────────────
   const courseIds = courses?.map((c) => c.id) ?? [];
@@ -142,7 +128,11 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
       </form>
 
       {/* ─── EMPTY STATE ────────────────────────────────────── */}
-      {list.length === 0 && (
+      {list.length === 0 && !q && (
+        <SampleShowcase kind="courses" reason={loadFailed ? "error" : "empty"} />
+      )}
+
+      {list.length === 0 && q && (
         <div style={{
           textAlign: "center", padding: "5rem 2rem",
           border: "1px solid var(--line)", borderRadius: "var(--radius)",
@@ -152,7 +142,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
             NO COURSES YET
           </div>
           <p className="text-dim mono" style={{ fontSize: ".8rem", letterSpacing: ".05em", marginTop: ".75rem" }}>
-            {q ? `No results for "${q}"` : "Check back soon — creators are building"}
+            No results for &quot;{q}&quot;
           </p>
         </div>
       )}

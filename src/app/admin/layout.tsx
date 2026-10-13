@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/supabase/auth";
+import { requireAdmin } from "@/lib/auth";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import StopImpersonationBanner from "@/components/admin/StopImpersonationBanner";
 import { getImpersonatedUserId } from "@/lib/admin/impersonation";
