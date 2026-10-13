@@ -2,7 +2,7 @@
 import AvatarUploader from "@/components/profile/AvatarUploader";
 import ProfileForm from "@/components/profile/ProfileForm";
 import ProfileCompletion from "@/components/profile/ProfileCompletion";
-import { requireUser } from "@/lib/supabase/auth";
+import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 

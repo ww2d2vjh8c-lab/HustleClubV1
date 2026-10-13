@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/supabase/auth";
+import { requireAdmin } from "@/lib/auth";
 import CreatorRequestActions from "@/components/admin/CreatorRequestActions";
 
 export const dynamic = "force-dynamic";

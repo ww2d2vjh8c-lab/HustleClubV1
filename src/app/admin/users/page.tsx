@@ -1,5 +1,5 @@
 import { Role } from "@/types";
-import { requireAdmin } from "@/lib/supabase/auth";
+import { requireAdmin } from "@/lib/auth";
 import RoleSwitcher from "@/components/admin/RoleSwitcher";
 import ImpersonateButton from "@/components/admin/ImpersonateButton";
 

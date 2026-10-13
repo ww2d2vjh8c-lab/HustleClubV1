@@ -277,9 +277,9 @@ export default async function HomePage() {
             background: "var(--surface-strong)",
             border: "1px solid var(--line)",
             borderRadius: "var(--radius)",
-            padding: "2.5rem",
+            padding: "clamp(1.25rem, 5vw, 2.5rem)",
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
             gap: "2.5rem",
             alignItems: "center",
           }}>
