@@ -45,6 +45,9 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
 
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
@@ -121,11 +124,20 @@ jobs:
     outputs:
       url: ${{ steps.deploy.outputs.deployment-url }}
 
+    env:
+      HAS_VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN != '' }}
+
     steps:
+      - name: Skip when Vercel secrets are not configured
+        if: env.HAS_VERCEL_TOKEN != 'true'
+        run: echo "::notice::VERCEL_TOKEN is not set; skipping preview deploy (the Vercel GitHub app still builds previews)."
+
       - name: Checkout
+        if: env.HAS_VERCEL_TOKEN == 'true'
         uses: actions/checkout@v4
 
       - name: Deploy preview to Vercel
+        if: env.HAS_VERCEL_TOKEN == 'true'
         id: deploy
         uses: amondnet/vercel-action@v25
         with:
@@ -141,6 +153,9 @@ jobs:
     name: Migration diff check
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Checkout
